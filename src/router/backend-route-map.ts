@@ -1,3 +1,4 @@
+// 若依后端不同版本的 path/component 写法不完全一致，先在这一层统一归一，避免菜单、路由守卫、面包屑各自写一套规则。
 const exactPathAliases: Record<string, string> = {
   '/system/log/logininfor': '/monitor/logininfor',
   '/system/log/operlog': '/monitor/operlog',
@@ -152,6 +153,7 @@ export function resolveBackendComponentPath(component?: string) {
   return backendComponentPathMap[normalizedComponent] ?? ''
 }
 
+// 优先信任 component 映射，只在无法匹配时再回退到 path 拼接，这样更接近若依动态路由的真实语义。
 export function resolveCanonicalBackendRoutePath(path?: string, component?: string, parentPath = '') {
   const componentPath = resolveBackendComponentPath(component)
   if (componentPath) {

@@ -72,6 +72,7 @@ const emit = defineEmits<{
 const slots = useSlots()
 
 const withSelection = computed(() => props.showSelection || Boolean(slots.selection) || Boolean(slots['selection-header']))
+// 操作列默认跟随 actions 配置自动出现，只有显式传 false 才强制隐藏.
 const withActions = computed(() => {
   if (typeof props.showActions === 'boolean') {
     return props.showActions
@@ -118,6 +119,7 @@ function updatePageSize(value: unknown) {
   emit('update:pageSize', Number.isFinite(nextSize) && nextSize > 0 ? nextSize : props.pageSize)
 }
 
+// 统一在这里同步 key 和 row，避免每个页面重复组装选中结果.
 function syncSelection(nextKeys: Array<string | number>) {
   emit('update:selectedRowKeys', nextKeys)
   const selectedRows = props.rows.filter((row, index) => nextKeys.includes(resolveRowKey(row, index)))

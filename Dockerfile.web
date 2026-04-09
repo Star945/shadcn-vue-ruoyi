@@ -1,0 +1,21 @@
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/server/package.json apps/server/package.json
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+
+ARG VITE_APP_TITLE=RuoYi Modern 后台
+ARG VITE_APP_ENV=production
+ARG VITE_APP_BASE_API=/prod-api
+RUN printf "VITE_APP_TITLE=%s\nVITE_APP_ENV=%s\nVITE_APP_BASE_API=%s\nVITE_APP_DEV_PROXY_TARGET=http://server:3000\n" "$VITE_APP_TITLE" "$VITE_APP_ENV" "$VITE_APP_BASE_API" > .env.production
+RUN pnpm build
+
+FROM nginx:1.27-alpine
+COPY deploy/nginx/frontend.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80

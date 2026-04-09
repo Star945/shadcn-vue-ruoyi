@@ -1,0 +1,359 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model SysUser {
+  userId        Int             @id @default(autoincrement()) @map("user_id")
+  deptId        Int?            @map("dept_id")
+  userName      String          @unique @map("user_name") @db.VarChar(30)
+  nickName      String          @map("nick_name") @db.VarChar(30)
+  email         String?         @db.VarChar(50)
+  phonenumber   String?         @db.VarChar(11)
+  sex           String          @default("0") @db.Char(1)
+  avatar        String?         @db.VarChar(100)
+  password      String          @db.VarChar(100)
+  status        String          @default("0") @db.Char(1)
+  delFlag       String          @default("0") @map("del_flag") @db.Char(1)
+  loginIp       String?         @map("login_ip") @db.VarChar(128)
+  loginDate     DateTime?       @map("login_date")
+  createBy      String?         @map("create_by") @db.VarChar(64)
+  createTime    DateTime?       @map("create_time")
+  updateBy      String?         @map("update_by") @db.VarChar(64)
+  updateTime    DateTime?       @map("update_time")
+  remark        String?         @db.VarChar(500)
+  dept          SysDept?        @relation(fields: [deptId], references: [deptId])
+  userRoles     SysUserRole[]
+  userPosts     SysUserPost[]
+  noticeReads   SysNoticeRead[]
+
+  @@map("sys_user")
+}
+
+model SysRole {
+  roleId            Int           @id @default(autoincrement()) @map("role_id")
+  roleName          String        @map("role_name") @db.VarChar(30)
+  roleKey           String        @map("role_key") @db.VarChar(100)
+  roleSort          Int           @map("role_sort")
+  dataScope         String        @default("1") @map("data_scope") @db.Char(1)
+  menuCheckStrictly Boolean       @default(true) @map("menu_check_strictly")
+  deptCheckStrictly Boolean       @default(true) @map("dept_check_strictly")
+  status            String        @default("0") @db.Char(1)
+  delFlag           String        @default("0") @map("del_flag") @db.Char(1)
+  createBy          String?       @map("create_by") @db.VarChar(64)
+  createTime        DateTime?     @map("create_time")
+  updateBy          String?       @map("update_by") @db.VarChar(64)
+  updateTime        DateTime?     @map("update_time")
+  remark            String?       @db.VarChar(500)
+  roleMenus         SysRoleMenu[]
+  roleDepts         SysRoleDept[]
+  userRoles         SysUserRole[]
+
+  @@map("sys_role")
+}
+
+model SysMenu {
+  menuId      Int           @id @default(autoincrement()) @map("menu_id")
+  menuName    String        @map("menu_name") @db.VarChar(50)
+  parentId    Int           @default(0) @map("parent_id")
+  orderNum    Int           @default(0) @map("order_num")
+  path        String        @db.VarChar(200)
+  component   String?       @db.VarChar(255)
+  query       String?       @db.VarChar(255)
+  routeName   String?       @map("route_name") @db.VarChar(50)
+  isFrame     Int           @default(1) @map("is_frame")
+  isCache     Int           @default(0) @map("is_cache")
+  menuType    String        @map("menu_type") @db.Char(1)
+  visible     String        @default("0") @db.Char(1)
+  status      String        @default("0") @db.Char(1)
+  perms       String?       @db.VarChar(100)
+  icon        String?       @db.VarChar(100)
+  createBy    String?       @map("create_by") @db.VarChar(64)
+  createTime  DateTime?     @map("create_time")
+  updateBy    String?       @map("update_by") @db.VarChar(64)
+  updateTime  DateTime?     @map("update_time")
+  remark      String?       @db.VarChar(500)
+  roleMenus   SysRoleMenu[]
+
+  @@map("sys_menu")
+}
+
+model SysDept {
+  deptId      Int           @id @default(autoincrement()) @map("dept_id")
+  parentId    Int           @default(0) @map("parent_id")
+  ancestors   String?       @db.VarChar(255)
+  deptName    String        @map("dept_name") @db.VarChar(30)
+  orderNum    Int           @default(0) @map("order_num")
+  leader      String?       @db.VarChar(20)
+  phone       String?       @db.VarChar(11)
+  email       String?       @db.VarChar(50)
+  status      String        @default("0") @db.Char(1)
+  delFlag     String        @default("0") @map("del_flag") @db.Char(1)
+  createBy    String?       @map("create_by") @db.VarChar(64)
+  createTime  DateTime?     @map("create_time")
+  updateBy    String?       @map("update_by") @db.VarChar(64)
+  updateTime  DateTime?     @map("update_time")
+  users       SysUser[]
+  roleDepts   SysRoleDept[]
+
+  @@map("sys_dept")
+}
+
+model SysPost {
+  postId      Int           @id @default(autoincrement()) @map("post_id")
+  postCode    String        @map("post_code") @db.VarChar(64)
+  postName    String        @map("post_name") @db.VarChar(50)
+  postSort    Int           @map("post_sort")
+  status      String        @default("0") @db.Char(1)
+  createBy    String?       @map("create_by") @db.VarChar(64)
+  createTime  DateTime?     @map("create_time")
+  updateBy    String?       @map("update_by") @db.VarChar(64)
+  updateTime  DateTime?     @map("update_time")
+  remark      String?       @db.VarChar(500)
+  userPosts   SysUserPost[]
+
+  @@map("sys_post")
+}
+
+model SysDictType {
+  dictId      Int           @id @default(autoincrement()) @map("dict_id")
+  dictName    String        @map("dict_name") @db.VarChar(100)
+  dictType    String        @unique @map("dict_type") @db.VarChar(100)
+  status      String        @default("0") @db.Char(1)
+  createBy    String?       @map("create_by") @db.VarChar(64)
+  createTime  DateTime?     @map("create_time")
+  updateBy    String?       @map("update_by") @db.VarChar(64)
+  updateTime  DateTime?     @map("update_time")
+  remark      String?       @db.VarChar(500)
+  dictDatas   SysDictData[] @relation("DictTypeToData")
+
+  @@map("sys_dict_type")
+}
+
+model SysDictData {
+  dictCode     Int          @id @default(autoincrement()) @map("dict_code")
+  dictSort     Int          @default(0) @map("dict_sort")
+  dictLabel    String       @map("dict_label") @db.VarChar(100)
+  dictValue    String       @map("dict_value") @db.VarChar(100)
+  dictType     String       @map("dict_type") @db.VarChar(100)
+  cssClass     String?      @map("css_class") @db.VarChar(100)
+  listClass    String?      @map("list_class") @db.VarChar(100)
+  isDefault    String       @default("N") @map("is_default") @db.Char(1)
+  status       String       @default("0") @db.Char(1)
+  createBy     String?      @map("create_by") @db.VarChar(64)
+  createTime   DateTime?    @map("create_time")
+  updateBy     String?      @map("update_by") @db.VarChar(64)
+  updateTime   DateTime?    @map("update_time")
+  remark       String?      @db.VarChar(500)
+  dictTypeInfo SysDictType? @relation("DictTypeToData", fields: [dictType], references: [dictType])
+
+  @@map("sys_dict_data")
+}
+
+model SysConfig {
+  configId     Int          @id @default(autoincrement()) @map("config_id")
+  configName   String       @map("config_name") @db.VarChar(100)
+  configKey    String       @unique @map("config_key") @db.VarChar(100)
+  configValue  String       @map("config_value") @db.VarChar(500)
+  configType   String       @default("N") @map("config_type") @db.Char(1)
+  createBy     String?      @map("create_by") @db.VarChar(64)
+  createTime   DateTime?    @map("create_time")
+  updateBy     String?      @map("update_by") @db.VarChar(64)
+  updateTime   DateTime?    @map("update_time")
+  remark       String?      @db.VarChar(500)
+
+  @@map("sys_config")
+}
+
+model SysNotice {
+  noticeId       Int             @id @default(autoincrement()) @map("notice_id")
+  noticeTitle    String          @map("notice_title") @db.VarChar(200)
+  noticeType     String          @map("notice_type") @db.Char(1)
+  noticeContent  String          @map("notice_content") @db.LongText
+  status         String          @default("0") @db.Char(1)
+  createBy       String?         @map("create_by") @db.VarChar(64)
+  createTime     DateTime?       @map("create_time")
+  updateBy       String?         @map("update_by") @db.VarChar(64)
+  updateTime     DateTime?       @map("update_time")
+  remark         String?         @db.VarChar(500)
+  noticeReads    SysNoticeRead[]
+
+  @@map("sys_notice")
+}
+
+model SysLogininfor {
+  infoId         Int       @id @default(autoincrement()) @map("info_id")
+  userName       String    @map("user_name") @db.VarChar(50)
+  ipaddr         String?   @db.VarChar(128)
+  loginLocation  String?   @map("login_location") @db.VarChar(255)
+  browser        String?   @db.VarChar(50)
+  os             String?   @db.VarChar(50)
+  status         String    @default("0") @db.Char(1)
+  msg            String?   @db.VarChar(255)
+  loginTime      DateTime? @map("login_time")
+
+  @@map("sys_logininfor")
+}
+
+model SysOperLog {
+  operId         Int       @id @default(autoincrement()) @map("oper_id")
+  title          String?   @db.VarChar(50)
+  businessType   Int       @default(0) @map("business_type")
+  method         String?   @db.VarChar(200)
+  requestMethod  String?   @map("request_method") @db.VarChar(10)
+  operName       String?   @map("oper_name") @db.VarChar(50)
+  deptName       String?   @map("dept_name") @db.VarChar(50)
+  operUrl        String?   @map("oper_url") @db.VarChar(255)
+  operIp         String?   @map("oper_ip") @db.VarChar(128)
+  operLocation   String?   @map("oper_location") @db.VarChar(255)
+  operParam      String?   @map("oper_param") @db.LongText
+  jsonResult     String?   @map("json_result") @db.LongText
+  status         Int       @default(0)
+  errorMsg       String?   @map("error_msg") @db.LongText
+  operTime       DateTime? @map("oper_time")
+  costTime       Int       @default(0) @map("cost_time")
+
+  @@map("sys_oper_log")
+}
+
+model SysJob {
+  jobId          Int       @id @default(autoincrement()) @map("job_id")
+  jobName        String    @map("job_name") @db.VarChar(64)
+  jobGroup       String    @default("DEFAULT") @map("job_group") @db.VarChar(64)
+  invokeTarget   String    @map("invoke_target") @db.VarChar(500)
+  cronExpression String    @map("cron_expression") @db.VarChar(255)
+  misfirePolicy  String    @default("3") @map("misfire_policy") @db.Char(1)
+  concurrent     String    @default("1") @db.Char(1)
+  status         String    @default("0") @db.Char(1)
+  nextValidTime  DateTime? @map("next_valid_time")
+  createBy       String?   @map("create_by") @db.VarChar(64)
+  createTime     DateTime? @map("create_time")
+  updateBy       String?   @map("update_by") @db.VarChar(64)
+  updateTime     DateTime? @map("update_time")
+  remark         String?   @db.VarChar(500)
+
+  @@map("sys_job")
+}
+
+model SysJobLog {
+  jobLogId      Int       @id @default(autoincrement()) @map("job_log_id")
+  jobName       String    @map("job_name") @db.VarChar(64)
+  jobGroup      String    @map("job_group") @db.VarChar(64)
+  invokeTarget  String    @map("invoke_target") @db.VarChar(500)
+  jobMessage    String?   @map("job_message") @db.VarChar(500)
+  status        String    @default("0") @db.Char(1)
+  exceptionInfo String?   @map("exception_info") @db.LongText
+  createTime    DateTime? @map("create_time")
+
+  @@map("sys_job_log")
+}
+
+model SysUserRole {
+  userId Int      @map("user_id")
+  roleId Int      @map("role_id")
+  user   SysUser  @relation(fields: [userId], references: [userId])
+  role   SysRole  @relation(fields: [roleId], references: [roleId])
+
+  @@id([userId, roleId])
+  @@map("sys_user_role")
+}
+
+model SysUserPost {
+  userId Int      @map("user_id")
+  postId Int      @map("post_id")
+  user   SysUser  @relation(fields: [userId], references: [userId])
+  post   SysPost  @relation(fields: [postId], references: [postId])
+
+  @@id([userId, postId])
+  @@map("sys_user_post")
+}
+
+model SysRoleMenu {
+  roleId Int      @map("role_id")
+  menuId Int      @map("menu_id")
+  role   SysRole  @relation(fields: [roleId], references: [roleId])
+  menu   SysMenu  @relation(fields: [menuId], references: [menuId])
+
+  @@id([roleId, menuId])
+  @@map("sys_role_menu")
+}
+
+model SysRoleDept {
+  roleId Int      @map("role_id")
+  deptId Int      @map("dept_id")
+  role   SysRole  @relation(fields: [roleId], references: [roleId])
+  dept   SysDept  @relation(fields: [deptId], references: [deptId])
+
+  @@id([roleId, deptId])
+  @@map("sys_role_dept")
+}
+
+model SysNoticeRead {
+  noticeId  Int       @map("notice_id")
+  userId    Int       @map("user_id")
+  readTime  DateTime? @map("read_time")
+  notice    SysNotice @relation(fields: [noticeId], references: [noticeId])
+  user      SysUser   @relation(fields: [userId], references: [userId])
+
+  @@id([noticeId, userId])
+  @@map("sys_notice_read")
+}
+
+model SysGenTable {
+  tableId         Int                 @id @default(autoincrement()) @map("table_id")
+  tableName       String              @unique @map("table_name") @db.VarChar(200)
+  tableComment    String?             @map("table_comment") @db.VarChar(500)
+  subTableName    String?             @map("sub_table_name") @db.VarChar(200)
+  subTableFkName  String?             @map("sub_table_fk_name") @db.VarChar(200)
+  className       String?             @map("class_name") @db.VarChar(100)
+  tplCategory     String              @default("crud") @map("tpl_category") @db.VarChar(30)
+  packageName     String?             @map("package_name") @db.VarChar(100)
+  moduleName      String?             @map("module_name") @db.VarChar(30)
+  businessName    String?             @map("business_name") @db.VarChar(30)
+  functionName    String?             @map("function_name") @db.VarChar(50)
+  functionAuthor  String?             @map("function_author") @db.VarChar(50)
+  genType         String              @default("0") @map("gen_type") @db.Char(1)
+  genPath         String?             @map("gen_path") @db.VarChar(200)
+  options         Json?               @map("options")
+  tplWebType      String?             @map("tpl_web_type") @db.VarChar(30)
+  createBy        String?             @map("create_by") @db.VarChar(64)
+  createTime      DateTime?           @map("create_time")
+  updateBy        String?             @map("update_by") @db.VarChar(64)
+  updateTime      DateTime?           @map("update_time")
+  remark          String?             @db.VarChar(500)
+  columns         SysGenTableColumn[]
+
+  @@map("gen_table")
+}
+
+model SysGenTableColumn {
+  columnId        Int          @id @default(autoincrement()) @map("column_id")
+  tableId         Int          @map("table_id")
+  columnName      String       @map("column_name") @db.VarChar(200)
+  columnComment   String?      @map("column_comment") @db.VarChar(500)
+  columnType      String       @map("column_type") @db.VarChar(100)
+  javaType        String?      @map("java_type") @db.VarChar(500)
+  javaField       String?      @map("java_field") @db.VarChar(200)
+  isPk            String       @default("0") @map("is_pk") @db.Char(1)
+  isIncrement     String       @default("0") @map("is_increment") @db.Char(1)
+  isRequired      String       @default("0") @map("is_required") @db.Char(1)
+  isInsert        String       @default("1") @map("is_insert") @db.Char(1)
+  isEdit          String       @default("1") @map("is_edit") @db.Char(1)
+  isList          String       @default("1") @map("is_list") @db.Char(1)
+  isQuery         String       @default("0") @map("is_query") @db.Char(1)
+  queryType       String       @default("EQ") @map("query_type") @db.VarChar(30)
+  htmlType        String?      @map("html_type") @db.VarChar(30)
+  dictType        String?      @map("dict_type") @db.VarChar(100)
+  sort            Int          @default(0)
+  createBy        String?      @map("create_by") @db.VarChar(64)
+  createTime      DateTime?    @map("create_time")
+  updateBy        String?      @map("update_by") @db.VarChar(64)
+  updateTime      DateTime?    @map("update_time")
+  genTable        SysGenTable  @relation(fields: [tableId], references: [tableId], onDelete: Cascade)
+
+  @@map("gen_table_column")
+}

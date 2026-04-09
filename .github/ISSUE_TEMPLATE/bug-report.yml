@@ -1,0 +1,74 @@
+name: 缺陷反馈
+description: 提交一个可复现的问题
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈问题。请尽量提供完整复现信息，方便快速定位。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 问题描述
+      description: 简要说明你遇到的问题
+      placeholder: 例如：用户管理移动端筛选区按钮换行后遮挡表格
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 请按顺序写出操作步骤
+      placeholder: |
+        1. 打开用户管理
+        2. 切换到移动端宽度
+        3. 展开高级搜索
+        4. 点击查询
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望结果
+      placeholder: 描述你认为正确的表现
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+      placeholder: 描述实际出现的问题
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 控制台报错或日志
+      description: 可粘贴浏览器控制台、服务端日志或构建日志
+      render: shell
+
+  - type: textarea
+    id: env
+    attributes:
+      label: 环境信息
+      description: 请填写操作系统、浏览器、Node 版本、数据库状态等
+      placeholder: |
+        OS: Windows 11
+        Browser: Chrome 135
+        Node: 20.x
+        DB: MySQL 8 / 已执行 seed
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充说明
+      description: 可粘贴截图、录屏链接、关联文件或其他上下文

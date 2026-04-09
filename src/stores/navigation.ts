@@ -1,4 +1,4 @@
-﻿import type { IconName } from '@/lib/icons'
+import type { IconName } from '@/lib/icons'
 
 import { defineStore } from 'pinia'
 
@@ -45,6 +45,7 @@ interface NavigationState {
   loading: boolean
 }
 
+// 后端菜单拉取失败时使用的前端保底导航，只覆盖进入后台所必需的主链路。
 const fallbackTree: NavigationNode[] = [
   {
     title: '系统管理',
@@ -280,6 +281,7 @@ function createTitleMap(tree: NavigationNode[]) {
   }, {})
 }
 
+// 后端返回的 hidden 节点不直接进菜单，但要把可见子节点提升出来，否则面包屑和路由访问会丢失。
 function buildTree(routes: BackendRoute[], parentPath = '', titleMap: Record<string, string> = {}) {
   const nodes: NavigationNode[] = []
 

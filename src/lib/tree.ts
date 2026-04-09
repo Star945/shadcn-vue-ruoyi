@@ -1,4 +1,4 @@
-﻿export interface FlatTreeNode<T> {
+export interface FlatTreeNode<T> {
   id: string
   label: string
   depth: number
@@ -38,12 +38,21 @@ export function buildTreeFromFlat<T extends Record<string, any>>(
     return []
   }
 
+  const getParentId = options.getParentId ?? ((node: T) => (node as { parentId?: string | number | null }).parentId)
+  const nodeIds = new Set(nodes.map(node => String(options.getId(node))))
   const hasNestedChildren = nodes.some(node => resolveChildren(node, options).length > 0)
-  if (hasNestedChildren) {
+  const hasParentRefsInsideList = nodes.some((node) => {
+    const id = String(options.getId(node))
+    const parentId = normalizeTreeId(getParentId(node))
+    return !!parentId && parentId !== '0' && parentId !== id && nodeIds.has(parentId)
+  })
+
+  // Some fallback APIs return a flat list while parent rows still keep stale children arrays.
+  // In that hybrid case we must rebuild from parentId, otherwise tree rows render twice.
+  if (hasNestedChildren && !hasParentRefsInsideList) {
     return nodes
   }
 
-  const getParentId = options.getParentId ?? ((node: T) => (node as { parentId?: string | number | null }).parentId)
   const clones = new Map<string, T & { children?: T[] }>()
   const roots: Array<T & { children?: T[] }> = []
 

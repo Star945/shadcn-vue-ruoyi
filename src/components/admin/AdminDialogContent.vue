@@ -52,6 +52,7 @@ const sizeClasses: Record<AdminDialogSize, string> = {
   full: 'sm:max-w-[min(1440px,calc(100vw-3rem))]',
 }
 
+// 默认走 viewport 滚动，让超高弹窗的滚动责任落在 overlay 上，比内部套多层 fixed 容器更稳定，也更接近 Element Plus Dialog 的体验。
 const overlayClass = computed(() => cn(
   'fixed inset-0 z-50 overflow-y-auto bg-black/80 px-2 py-4 surface-scrollbar',
   'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
@@ -76,6 +77,7 @@ const contentClass = computed(() => cn(
   props.class,
 ))
 
+// 点击滚动条本身时不要误触发关闭，否则长弹窗在 Windows 下会有较差的体验。
 function handlePointerDownOutside(event: CustomEvent<{ originalEvent: MouseEvent }>) {
   const originalEvent = event.detail?.originalEvent
   const target = originalEvent?.target

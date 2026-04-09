@@ -1,0 +1,12 @@
+.git
+.vscode
+node_modules
+**/node_modules
+**/dist
+apps/server/dist
+apps/server/uploads
+_references
+_scaffold
+shadcn-vue-ruoyi.zip
+*.log
+pnpm-debug.log*

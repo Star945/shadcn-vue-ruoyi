@@ -1,0 +1,38 @@
+{
+    "name":  "@ruoyi-modern/server",
+    "private":  true,
+    "version":  "0.1.0",
+    "type":  "commonjs",
+    "description":  "NestJS backend scaffold for shadcn-vue-ruoyi",
+    "scripts":  {
+                    "build":  "tsc -p tsconfig.build.json",
+                    "build:watch":  "tsc -p tsconfig.build.json --watch",
+                    "start":  "node dist/main.js",
+                    "prisma:generate":  "prisma generate \u0026\u0026 node scripts/sync-prisma-client.mjs",
+                    "prisma:migrate:dev":  "prisma migrate dev",
+                    "prisma:studio":  "prisma studio",
+                    "prisma:push":  "prisma db push",
+                    "seed":  "node scripts/seed.mjs"
+                },
+    "engines":  {
+                    "node":  "\u003e=20.0.0"
+                },
+    "dependencies":  {
+                         "@nestjs/common":  "^11.0.0",
+                         "@nestjs/core":  "^11.0.0",
+                         "@nestjs/platform-express":  "^11.0.0",
+                         "@nestjs/swagger":  "^11.0.0",
+                         "@prisma/client":  "^6.0.0",
+                         "bcryptjs":  "^2.4.3",
+                         "class-transformer":  "^0.5.1",
+                         "class-validator":  "^0.14.1",
+                         "dotenv":  "^17.2.3",
+                         "reflect-metadata":  "^0.2.2",
+                         "rxjs":  "^7.8.1"
+                     },
+    "devDependencies":  {
+                            "@types/node":  "^24.0.0",
+                            "prisma":  "^6.0.0",
+                            "typescript":  "^5.9.0"
+                        }
+}

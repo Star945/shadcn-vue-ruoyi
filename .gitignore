@@ -26,3 +26,6 @@ dist-ssr
 _references/
 _scaffold/
 -g
+.env
+apps/server/.env
+apps/server/uploads/

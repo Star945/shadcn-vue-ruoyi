@@ -1,0 +1,72 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: ruoyi-modern-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ruoyi_modern
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7.2
+    container_name: ruoyi-modern-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: ruoyi-modern-server
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      PORT: 3000
+      APP_NAME: RuoYi Modern Server
+      DATABASE_URL: mysql://root:root@mysql:3306/ruoyi_modern
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: replace-with-a-strong-secret
+      UPLOAD_DIR: uploads
+    ports:
+      - "3000:3000"
+    volumes:
+      - server-uploads:/app/apps/server/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        VITE_APP_TITLE: RuoYi Modern 后台
+        VITE_APP_ENV: production
+        VITE_APP_BASE_API: /prod-api
+    container_name: ruoyi-modern-web
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "8080:80"
+
+volumes:
+  mysql-data:
+  redis-data:
+  server-uploads:

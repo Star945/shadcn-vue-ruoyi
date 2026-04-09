@@ -1,0 +1,55 @@
+name: 功能建议
+description: 提交一个新需求或改进建议
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎提出改进建议。请尽量描述清楚场景、目标和预期收益。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 需求概述
+      placeholder: 例如：希望代码生成支持数据库表字段注释同步到表单提示
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 当前问题
+      description: 说明目前为什么不方便、哪里不足
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 描述你期望的交互、接口或结构变化
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 影响范围
+      options:
+        - 前端页面
+        - 前端共享组件
+        - 动态路由 / 权限
+        - 后端接口
+        - 数据库 / Prisma
+        - 部署 / 文档
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充说明
+      description: 可附截图、原型、参考链接或相关文件路径
