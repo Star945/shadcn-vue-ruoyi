@@ -120,24 +120,11 @@ onMounted(loadList)
 <template>
   <div class="space-y-6">
     <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统监控 / 在线用户</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">在线用户</h1>
-      </div>
+      <p class="admin-kicker">系统监控 / 在线用户</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">在线用户</h1>
+    </div>
 
-    <AdminQueryPanel
-      grid-class="md:grid-cols-2"
-      @query="handleQuery"
-      @reset="handleResetQuery"
-    >
-      <AdminFormField label="登录地址">
-        <Input v-model="queryParams.ipaddr" placeholder="请输入登录地址" />
-      </AdminFormField>
-      <AdminFormField label="登录名称">
-        <Input v-model="queryParams.userName" placeholder="请输入登录名称" />
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="在线会话">
+    <AdminSectionCard title="在线会话" content-class="space-y-4">
       <template #headerExtra>
         <Badge variant="outline">共 {{ total }} 个会话</Badge>
         <Button variant="outline" size="sm" class="gap-1" @click="loadList">
@@ -145,6 +132,19 @@ onMounted(loadList)
           刷新
         </Button>
       </template>
+      <AdminQueryPanel
+        embedded
+        grid-class="md:grid-cols-2"
+        @query="handleQuery"
+        @reset="handleResetQuery"
+      >
+        <AdminFormField label="登录地址">
+          <Input v-model="queryParams.ipaddr" placeholder="请输入登录地址" />
+        </AdminFormField>
+        <AdminFormField label="登录名称">
+          <Input v-model="queryParams.userName" placeholder="请输入登录名称" />
+        </AdminFormField>
+      </AdminQueryPanel>
       <AdminDataTable
         :columns="onlineTableColumns"
         :rows="pagedRows"

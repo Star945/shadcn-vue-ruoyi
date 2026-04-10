@@ -13,7 +13,7 @@ import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
@@ -56,10 +56,11 @@ const canRemoveDict = computed(() => access.can(dictPerms.remove))
 const canExportDict = computed(() => access.can(dictPerms.export))
 const canViewDictData = computed(() => access.can(dictPerms.list))
 const canRefreshDictCache = computed(() => access.can(dictPerms.remove))
+
 const dictRowActions: AdminTableActionItem[] = [
-  { label: '数据', icon: List, visible: () => canViewDictData.value, onClick: (row) => openData(row) },
-  { label: '修改', icon: Pencil, visible: () => canEditDict.value, onClick: (row) => openEdit(row) },
-  { label: '删除', icon: Trash2, tone: 'danger', visible: () => canRemoveDict.value, onClick: (row) => removeRow(row) },
+  { label: '数据', icon: List, visible: () => canViewDictData.value, onClick: row => openData(row) },
+  { label: '修改', icon: Pencil, visible: () => canEditDict.value, onClick: row => openEdit(row) },
+  { label: '删除', icon: Trash2, tone: 'danger', visible: () => canRemoveDict.value, onClick: row => removeRow(row) },
 ]
 
 function defaultForm() {
@@ -268,37 +269,11 @@ onMounted(loadList)
 <template>
   <div class="space-y-6">
     <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统管理 / 字典管理</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">字典管理</h1>
-      </div>
+      <p class="admin-kicker">系统管理 / 字典管理</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">字典管理</h1>
+    </div>
 
-    <AdminQueryPanel
-      
-      grid-class="md:grid-cols-2 xl:grid-cols-3"
-      @query="handleQuery"
-      @reset="handleResetQuery"
-    >
-      <AdminFormField label="字典名称">
-        <Input v-model="queryParams.dictName" placeholder="请输入字典名称" />
-      </AdminFormField>
-      <AdminFormField label="字典类型">
-        <Input v-model="queryParams.dictType" placeholder="请输入字典类型" />
-      </AdminFormField>
-      <AdminFormField label="状态">
-        <Select v-model="queryParams.status">
-          <SelectTrigger>
-            <SelectValue placeholder="请选择状态" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="0">正常</SelectItem>
-            <SelectItem value="1">停用</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="字典类型列表">
+    <AdminSectionCard title="字典类型列表" content-class="space-y-4">
       <template #headerExtra>
         <Button v-if="canAddDict" size="sm" @click="openCreate">
           <Plus class="size-4" />
@@ -317,6 +292,28 @@ onMounted(loadList)
           刷新
         </Button>
       </template>
+
+      <AdminQueryPanel embedded grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
+        <AdminFormField label="字典名称">
+          <Input v-model="queryParams.dictName" placeholder="请输入字典名称" />
+        </AdminFormField>
+        <AdminFormField label="字典类型">
+          <Input v-model="queryParams.dictType" placeholder="请输入字典类型" />
+        </AdminFormField>
+        <AdminFormField label="状态">
+          <Select v-model="queryParams.status">
+            <SelectTrigger>
+              <SelectValue placeholder="请选择状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="0">正常</SelectItem>
+              <SelectItem value="1">停用</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+      </AdminQueryPanel>
+
       <AdminDataTable
         :columns="dictTableColumns"
         :rows="rows"
@@ -348,7 +345,7 @@ onMounted(loadList)
       <DialogContent class="sm:max-w-[760px]">
         <DialogHeader>
           <DialogTitle>{{ formTitle }}</DialogTitle>
-
+          <DialogDescription>{{ form.dictId ? '调整字典名称、类型与状态信息。' : '创建新的字典类型并补充基础信息。' }}</DialogDescription>
         </DialogHeader>
 
         <div class="grid gap-4 md:grid-cols-2">
@@ -382,14 +379,3 @@ onMounted(loadList)
     </Dialog>
   </div>
 </template>
-
-
-
-
-
-
-
-
-
-
-

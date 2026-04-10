@@ -10,6 +10,7 @@ import { addJob, changeJobStatus, delJob, exportJob, getJob, listJob, runJob, up
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
+import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
 
 import AdminDialogContent from '@/components/admin/AdminDialogContent.vue'
 import { Badge } from '@/components/ui/badge'
@@ -386,35 +387,11 @@ onMounted(loadList)
 <template>
   <div class="space-y-6">
     <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统监控 / 定时任务</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">定时任务</h1>
-      </div>
+      <p class="admin-kicker">系统监控 / 定时任务</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">定时任务</h1>
+    </div>
 
-    <AdminQueryPanel
-
-      grid-class="md:grid-cols-2 xl:grid-cols-3"
-      @query="handleQuery"
-      @reset="handleResetQuery"
-    >
-      <AdminFormField label="任务名称">
-        <Input v-model="queryParams.jobName" placeholder="请输入任务名称" />
-      </AdminFormField>
-      <AdminFormField label="任务组名">
-        <Input v-model="queryParams.jobGroup" placeholder="请输入任务组名" />
-      </AdminFormField>
-      <AdminFormField label="状态">
-        <Select v-model="queryParams.status">
-          <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="0">正常</SelectItem>
-            <SelectItem value="1">停用</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="任务列表">
+    <AdminSectionCard title="任务列表" content-class="space-y-4">
       <template #headerExtra>
         <Badge variant="outline">已选 {{ selectedRows.length }} 项</Badge>
         <Button v-if="canAddJob" size="sm" @click="openCreate">新增任务</Button>
@@ -424,6 +401,29 @@ onMounted(loadList)
         <Button v-if="canExportJob" variant="outline" size="sm" @click="handleExport">导出任务</Button>
         <Button variant="outline" size="sm" @click="loadList">刷新</Button>
       </template>
+      <AdminQueryPanel
+        embedded
+        grid-class="md:grid-cols-2 xl:grid-cols-3"
+        @query="handleQuery"
+        @reset="handleResetQuery"
+      >
+        <AdminFormField label="任务名称">
+          <Input v-model="queryParams.jobName" placeholder="请输入任务名称" />
+        </AdminFormField>
+        <AdminFormField label="任务组名">
+          <Input v-model="queryParams.jobGroup" placeholder="请输入任务组名" />
+        </AdminFormField>
+        <AdminFormField label="状态">
+          <Select v-model="queryParams.status">
+            <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="0">正常</SelectItem>
+              <SelectItem value="1">停用</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+      </AdminQueryPanel>
       <AdminDataTable
         :columns="jobTableColumns"
         :rows="rows"

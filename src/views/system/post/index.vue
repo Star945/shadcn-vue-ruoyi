@@ -12,7 +12,7 @@ import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
@@ -53,9 +53,10 @@ const canAddPost = computed(() => access.can(postPerms.add))
 const canEditPost = computed(() => access.can(postPerms.edit))
 const canRemovePost = computed(() => access.can(postPerms.remove))
 const canExportPost = computed(() => access.can(postPerms.export))
+
 const postRowActions: AdminTableActionItem[] = [
-  { label: '修改', icon: Pencil, visible: () => canEditPost.value, onClick: (row) => openEdit(row) },
-  { label: '删除', icon: Trash2, tone: 'danger', visible: () => canRemovePost.value, onClick: (row) => removeRow(row) },
+  { label: '修改', icon: Pencil, visible: () => canEditPost.value, onClick: row => openEdit(row) },
+  { label: '删除', icon: Trash2, tone: 'danger', visible: () => canRemovePost.value, onClick: row => removeRow(row) },
 ]
 
 function defaultForm() {
@@ -178,6 +179,7 @@ async function submitForm() {
     const payload = {
       ...form,
       postId: form.postId || undefined,
+      postSort: Number(form.postSort ?? 1),
     }
     if (form.postId) {
       await updatePost(payload)
@@ -249,37 +251,11 @@ onMounted(loadList)
 <template>
   <div class="space-y-6">
     <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统管理 / 岗位管理</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">岗位管理</h1>
-      </div>
+      <p class="admin-kicker">系统管理 / 岗位管理</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">岗位管理</h1>
+    </div>
 
-    <AdminQueryPanel
-      
-      grid-class="md:grid-cols-2 xl:grid-cols-3"
-      @query="handleQuery"
-      @reset="handleResetQuery"
-    >
-      <AdminFormField label="岗位编码">
-        <Input v-model="queryParams.postCode" placeholder="请输入岗位编码" />
-      </AdminFormField>
-      <AdminFormField label="岗位名称">
-        <Input v-model="queryParams.postName" placeholder="请输入岗位名称" />
-      </AdminFormField>
-      <AdminFormField label="状态">
-        <Select v-model="queryParams.status">
-          <SelectTrigger>
-            <SelectValue placeholder="请选择状态" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="0">正常</SelectItem>
-            <SelectItem value="1">停用</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="岗位列表">
+    <AdminSectionCard title="岗位列表" content-class="space-y-4">
       <template #headerExtra>
         <Button v-if="canAddPost" size="sm" @click="openCreate">
           <Plus class="size-4" />
@@ -294,6 +270,28 @@ onMounted(loadList)
           刷新
         </Button>
       </template>
+
+      <AdminQueryPanel embedded grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
+        <AdminFormField label="岗位编码">
+          <Input v-model="queryParams.postCode" placeholder="请输入岗位编码" />
+        </AdminFormField>
+        <AdminFormField label="岗位名称">
+          <Input v-model="queryParams.postName" placeholder="请输入岗位名称" />
+        </AdminFormField>
+        <AdminFormField label="状态">
+          <Select v-model="queryParams.status">
+            <SelectTrigger>
+              <SelectValue placeholder="请选择状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="0">正常</SelectItem>
+              <SelectItem value="1">停用</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+      </AdminQueryPanel>
+
       <AdminDataTable
         :columns="postTableColumns"
         :rows="rows"
@@ -325,7 +323,7 @@ onMounted(loadList)
       <DialogContent class="sm:max-w-[760px]">
         <DialogHeader>
           <DialogTitle>{{ formTitle }}</DialogTitle>
-
+          <DialogDescription>{{ form.postId ? '调整岗位编码、名称与状态信息。' : '创建新的岗位并完善基础信息。' }}</DialogDescription>
         </DialogHeader>
 
         <div class="grid gap-4 md:grid-cols-2">
@@ -362,15 +360,3 @@ onMounted(loadList)
     </Dialog>
   </div>
 </template>
-
-
-
-
-
-
-
-
-
-
-
-

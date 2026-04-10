@@ -239,40 +239,12 @@ onMounted(loadList)
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统管理 / 通知公告</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">通知公告</h1>
-      </div>
+    <div>
+      <p class="admin-kicker">系统管理 / 通知公告</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">通知公告</h1>
     </div>
 
-    <AdminQueryPanel grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
-      <AdminFormField label="公告标题">
-        <Input v-model="queryParams.noticeTitle" placeholder="请输入公告标题" />
-      </AdminFormField>
-      <AdminFormField label="公告类型">
-        <Select v-model="queryParams.noticeType">
-          <SelectTrigger><SelectValue placeholder="请选择公告类型" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="1">通知</SelectItem>
-            <SelectItem value="2">公告</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-      <AdminFormField label="状态">
-        <Select v-model="queryParams.status">
-          <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="0">正常</SelectItem>
-            <SelectItem value="1">关闭</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="公告列表">
+    <AdminSectionCard title="公告列表" content-class="space-y-4">
       <template #headerExtra>
         <Button v-if="canAddNotice" size="sm" @click="openCreate">
           <Plus class="size-4" />
@@ -283,6 +255,32 @@ onMounted(loadList)
           刷新
         </Button>
       </template>
+
+      <AdminQueryPanel embedded grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
+        <AdminFormField label="公告标题">
+          <Input v-model="queryParams.noticeTitle" placeholder="请输入公告标题" />
+        </AdminFormField>
+        <AdminFormField label="公告类型">
+          <Select v-model="queryParams.noticeType">
+            <SelectTrigger><SelectValue placeholder="请选择公告类型" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="1">通知</SelectItem>
+              <SelectItem value="2">公告</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+        <AdminFormField label="状态">
+          <Select v-model="queryParams.status">
+            <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="0">正常</SelectItem>
+              <SelectItem value="1">关闭</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+      </AdminQueryPanel>
 
       <AdminDataTable
         :columns="noticeTableColumns"

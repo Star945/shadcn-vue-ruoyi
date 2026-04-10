@@ -11,6 +11,7 @@ import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminDateRangePicker from '@/components/admin/AdminDateRangePicker.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
+import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
 
 import AdminDialogContent from '@/components/admin/AdminDialogContent.vue'
 import { Badge } from '@/components/ui/badge'
@@ -458,27 +459,11 @@ onMounted(loadList)
 <template>
   <div class="space-y-6">
     <div>
-      <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统工具 / 代码生成</p>
-      <h1 class="mt-2 text-3xl font-semibold tracking-tight">代码生成</h1>
+      <p class="admin-kicker">系统工具 / 代码生成</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">代码生成</h1>
     </div>
 
-    <AdminQueryPanel
-      grid-class="sm:grid-cols-2 xl:grid-cols-4"
-      @query="handleQuery"
-      @reset="handleResetQuery"
-    >
-      <AdminFormField label="表名称">
-        <Input v-model="queryParams.tableName" placeholder="请输入表名称" />
-      </AdminFormField>
-      <AdminFormField label="表描述">
-        <Input v-model="queryParams.tableComment" placeholder="请输入表描述" />
-      </AdminFormField>
-      <AdminFormField label="日期范围" field-class="sm:col-span-2">
-        <AdminDateRangePicker v-model:start="queryParams.beginDate" v-model:end="queryParams.endDate" />
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="生成配置列表">
+    <AdminSectionCard title="生成配置列表" content-class="space-y-4">
       <template #headerExtra>
         <Badge variant="outline">已选 {{ selectedRows.length }} 项</Badge>
         <Button v-if="canGenCode" size="sm" :disabled="!hasSelection" @click="handleGenerate()">
@@ -506,6 +491,22 @@ onMounted(loadList)
           刷新
         </Button>
       </template>
+      <AdminQueryPanel
+        embedded
+        grid-class="sm:grid-cols-2 xl:grid-cols-4"
+        @query="handleQuery"
+        @reset="handleResetQuery"
+      >
+        <AdminFormField label="表名称">
+          <Input v-model="queryParams.tableName" placeholder="请输入表名称" />
+        </AdminFormField>
+        <AdminFormField label="表描述">
+          <Input v-model="queryParams.tableComment" placeholder="请输入表描述" />
+        </AdminFormField>
+        <AdminFormField label="日期范围" field-class="sm:col-span-2">
+          <AdminDateRangePicker v-model:start="queryParams.beginDate" v-model:end="queryParams.endDate" />
+        </AdminFormField>
+      </AdminQueryPanel>
       <AdminDataTable
         :columns="tableColumns"
         :rows="rows"

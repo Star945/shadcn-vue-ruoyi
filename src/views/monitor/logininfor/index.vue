@@ -207,33 +207,11 @@ onMounted(loadList)
 <template>
   <div class="space-y-6">
     <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统监控 / 登录日志</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">登录日志</h1>
-      </div>
+      <p class="admin-kicker">系统监控 / 登录日志</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">登录日志</h1>
+    </div>
 
-    <AdminQueryPanel grid-class="sm:grid-cols-2 xl:grid-cols-3" advanced-grid-class="sm:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
-      <AdminFormField label="登录地址">
-        <Input v-model="queryParams.ipaddr" placeholder="请输入登录地址" />
-      </AdminFormField>
-      <AdminFormField label="用户名称">
-        <Input v-model="queryParams.userName" placeholder="请输入用户名称" />
-      </AdminFormField>
-      <AdminFormField label="状态">
-        <Select v-model="queryParams.status">
-          <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="option in monitorResultOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-      <template #advanced>
-        <AdminFormField label="日期范围" field-class="md:col-span-2">
-          <AdminDateRangePicker v-model:start="queryParams.beginDate" v-model:end="queryParams.endDate" />
-        </AdminFormField>
-      </template>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="登录日志列表">
+    <AdminSectionCard title="登录日志列表" content-class="space-y-4">
       <template #headerExtra>
         <Badge variant="outline">已选 {{ selectedRows.length }} 项</Badge>
         <Button v-if="canExportLoginInfor" variant="outline" size="sm" @click="handleExport">导出日志</Button>
@@ -242,6 +220,27 @@ onMounted(loadList)
         <Button v-if="canRemoveLoginInfor" variant="outline" size="sm" @click="handleClean">清空日志</Button>
         <Button variant="outline" size="sm" @click="loadList">刷新</Button>
       </template>
+      <AdminQueryPanel embedded grid-class="sm:grid-cols-2 xl:grid-cols-3" advanced-grid-class="sm:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
+        <AdminFormField label="登录地址">
+          <Input v-model="queryParams.ipaddr" placeholder="请输入登录地址" />
+        </AdminFormField>
+        <AdminFormField label="用户名称">
+          <Input v-model="queryParams.userName" placeholder="请输入用户名称" />
+        </AdminFormField>
+        <AdminFormField label="状态">
+          <Select v-model="queryParams.status">
+            <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="option in monitorResultOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+        <template #advanced>
+          <AdminFormField label="日期范围" field-class="md:col-span-2">
+            <AdminDateRangePicker v-model:start="queryParams.beginDate" v-model:end="queryParams.endDate" />
+          </AdminFormField>
+        </template>
+      </AdminQueryPanel>
       <AdminDataTable
         :columns="loginInforTableColumns"
         :rows="rows"

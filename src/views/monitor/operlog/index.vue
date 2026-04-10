@@ -10,6 +10,7 @@ import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminDateRangePicker from '@/components/admin/AdminDateRangePicker.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
+import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
 
 import AdminDialogContent from '@/components/admin/AdminDialogContent.vue'
 import { Badge } from '@/components/ui/badge'
@@ -210,44 +211,11 @@ onMounted(loadList)
 <template>
   <div class="space-y-6">
     <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统监控 / 操作日志</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">操作日志</h1>
-      </div>
+      <p class="admin-kicker">系统监控 / 操作日志</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">操作日志</h1>
+    </div>
 
-    <AdminQueryPanel grid-class="sm:grid-cols-2 xl:grid-cols-3" advanced-grid-class="sm:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
-      <AdminFormField label="操作地址">
-        <Input v-model="queryParams.operIp" placeholder="请输入操作地址" />
-      </AdminFormField>
-      <AdminFormField label="系统模块">
-        <Input v-model="queryParams.title" placeholder="请输入系统模块" />
-      </AdminFormField>
-      <AdminFormField label="操作人员">
-        <Input v-model="queryParams.operName" placeholder="请输入操作人员" />
-      </AdminFormField>
-      <template #advanced>
-        <AdminFormField label="业务类型">
-          <Select v-model="queryParams.businessType">
-            <SelectTrigger><SelectValue placeholder="请选择业务类型" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="option in monitorOperTypeOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
-            </SelectContent>
-          </Select>
-        </AdminFormField>
-        <AdminFormField label="状态">
-          <Select v-model="queryParams.status">
-            <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="option in operStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
-            </SelectContent>
-          </Select>
-        </AdminFormField>
-        <AdminFormField label="日期范围" field-class="md:col-span-2">
-          <AdminDateRangePicker v-model:start="queryParams.beginDate" v-model:end="queryParams.endDate" />
-        </AdminFormField>
-      </template>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="操作日志列表">
+    <AdminSectionCard title="操作日志列表" content-class="space-y-4">
       <template #headerExtra>
         <Badge variant="outline">已选 {{ selectedRows.length }} 项</Badge>
         <Button v-if="canExportOperlog" variant="outline" size="sm" @click="handleExport">导出日志</Button>
@@ -255,6 +223,38 @@ onMounted(loadList)
         <Button v-if="canRemoveOperlog" variant="outline" size="sm" @click="handleClean">清空日志</Button>
         <Button variant="outline" size="sm" @click="loadList">刷新</Button>
       </template>
+      <AdminQueryPanel embedded grid-class="sm:grid-cols-2 xl:grid-cols-3" advanced-grid-class="sm:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
+        <AdminFormField label="操作地址">
+          <Input v-model="queryParams.operIp" placeholder="请输入操作地址" />
+        </AdminFormField>
+        <AdminFormField label="系统模块">
+          <Input v-model="queryParams.title" placeholder="请输入系统模块" />
+        </AdminFormField>
+        <AdminFormField label="操作人员">
+          <Input v-model="queryParams.operName" placeholder="请输入操作人员" />
+        </AdminFormField>
+        <template #advanced>
+          <AdminFormField label="业务类型">
+            <Select v-model="queryParams.businessType">
+              <SelectTrigger><SelectValue placeholder="请选择业务类型" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="option in monitorOperTypeOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </AdminFormField>
+          <AdminFormField label="状态">
+            <Select v-model="queryParams.status">
+              <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="option in operStatusOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </AdminFormField>
+          <AdminFormField label="日期范围" field-class="md:col-span-2">
+            <AdminDateRangePicker v-model:start="queryParams.beginDate" v-model:end="queryParams.endDate" />
+          </AdminFormField>
+        </template>
+      </AdminQueryPanel>
       <AdminDataTable
         :columns="operlogTableColumns"
         :rows="rows"
