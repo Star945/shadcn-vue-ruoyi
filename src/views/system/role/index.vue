@@ -67,11 +67,12 @@ const canEditRole = computed(() => access.can(rolePerms.edit))
 const canRemoveRole = computed(() => access.can(rolePerms.remove))
 const canExportRole = computed(() => access.can(rolePerms.export))
 const canManageRoleStatus = computed(() => access.can(rolePerms.edit))
+
 const roleRowActions: AdminTableActionItem[] = [
-  { label: '修改', icon: Pencil, visible: (row) => canEditRole.value && !isProtectedRole(row), onClick: (row) => openEdit(row) },
-  { label: '权限', icon: ShieldCheck, visible: (row) => canEditRole.value && !isProtectedRole(row), onClick: (row) => openDataScope(row) },
-  { label: '用户', icon: Users, visible: (row) => canEditRole.value && !isProtectedRole(row), onClick: (row) => goAuthUser(row) },
-  { label: '删除', icon: Trash2, tone: 'danger', visible: (row) => canRemoveRole.value && !isProtectedRole(row), onClick: (row) => removeRow(row) },
+  { label: '修改', icon: Pencil, visible: row => canEditRole.value && !isProtectedRole(row), onClick: row => openEdit(row) },
+  { label: '权限', icon: ShieldCheck, visible: row => canEditRole.value && !isProtectedRole(row), onClick: row => openDataScope(row) },
+  { label: '用户', icon: Users, visible: row => canEditRole.value && !isProtectedRole(row), onClick: row => goAuthUser(row) },
+  { label: '删除', icon: Trash2, tone: 'danger', visible: row => canRemoveRole.value && !isProtectedRole(row), onClick: row => removeRow(row) },
 ]
 
 function defaultForm() {
@@ -417,33 +418,12 @@ onMounted(loadList)
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统管理 / 角色管理</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">角色管理</h1>
-      </div>
+    <div>
+      <p class="admin-kicker">系统管理 / 角色管理</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">角色管理</h1>
     </div>
 
-    <AdminQueryPanel @query="handleQuery" @reset="handleResetQuery">
-      <AdminFormField label="角色名称">
-        <Input v-model="queryParams.roleName" placeholder="请输入角色名称" />
-      </AdminFormField>
-      <AdminFormField label="权限字符">
-        <Input v-model="queryParams.roleKey" placeholder="请输入权限字符" />
-      </AdminFormField>
-      <AdminFormField label="状态">
-        <Select v-model="queryParams.status">
-          <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="0">正常</SelectItem>
-            <SelectItem value="1">停用</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="角色列表">
+    <AdminSectionCard title="角色列表" content-class="space-y-4">
       <template #headerExtra>
         <Button v-if="canAddRole" size="sm" @click="openCreate">
           <Plus class="size-4" />
@@ -458,6 +438,26 @@ onMounted(loadList)
           刷新
         </Button>
       </template>
+
+      <AdminQueryPanel embedded @query="handleQuery" @reset="handleResetQuery">
+        <AdminFormField label="角色名称">
+          <Input v-model="queryParams.roleName" placeholder="请输入角色名称" />
+        </AdminFormField>
+        <AdminFormField label="权限字符">
+          <Input v-model="queryParams.roleKey" placeholder="请输入权限字符" />
+        </AdminFormField>
+        <AdminFormField label="状态">
+          <Select v-model="queryParams.status">
+            <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="0">正常</SelectItem>
+              <SelectItem value="1">停用</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+      </AdminQueryPanel>
+
       <AdminDataTable
         :columns="roleTableColumns"
         :rows="rows"
@@ -484,7 +484,7 @@ onMounted(loadList)
         </template>
         <template #cell-status="{ row }">
           <div class="flex items-center justify-center gap-2">
-            <Switch v-if="canManageRoleStatus" :model-value="String(row.status) === '0'" @update:model-value="(value) => toggleStatus(row, Boolean(value))" />
+            <Switch v-if="canManageRoleStatus" :model-value="String(row.status) === '0'" @update:model-value="value => toggleStatus(row, Boolean(value))" />
             <Badge variant="outline">{{ statusText(String(row.status)) }}</Badge>
           </div>
         </template>
@@ -495,8 +495,7 @@ onMounted(loadList)
       <DialogContent class="sm:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>{{ formTitle }}</DialogTitle>
-          <DialogDescription>{{ form.roleId ? '修改角色资料。' : '创建新的角色。' }}</DialogDescription>
-
+          <DialogDescription>{{ form.roleId ? '调整角色信息与菜单权限。' : '创建新的角色并配置菜单权限。' }}</DialogDescription>
         </DialogHeader>
 
         <div class="grid gap-4 md:grid-cols-2">
@@ -521,10 +520,10 @@ onMounted(loadList)
           <AdminFormField label="菜单权限" field-class="md:col-span-2">
             <div class="space-y-2 rounded-3xl border border-border/70 bg-muted/25 p-4">
               <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <span class="text-sm text-muted-foreground">角色可见菜单</span>
+                <span class="text-sm text-muted-foreground">角色可访问菜单</span>
                 <label class="flex items-center gap-2 text-sm text-muted-foreground">
                   <Checkbox :checked="form.menuCheckStrictly" @update:checked="(checked: boolean | 'indeterminate') => form.menuCheckStrictly = Boolean(checked)" />
-                  父子联动关闭
+                  关闭父子联动
                 </label>
               </div>
               <AdminTreeList
@@ -581,7 +580,7 @@ onMounted(loadList)
                 <span class="text-sm text-muted-foreground">可访问部门树</span>
                 <label class="flex items-center gap-2 text-sm text-muted-foreground">
                   <Checkbox :checked="dataScopeForm.deptCheckStrictly" @update:checked="(checked: boolean | 'indeterminate') => dataScopeForm.deptCheckStrictly = Boolean(checked)" />
-                  父子联动关闭
+                  关闭父子联动
                 </label>
               </div>
               <AdminTreeList
@@ -604,15 +603,3 @@ onMounted(loadList)
     </Dialog>
   </div>
 </template>
-
-
-
-
-
-
-
-
-
-
-
-

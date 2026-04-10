@@ -56,6 +56,9 @@
   --theme-sidebar-primary-foreground: #f8fafc;
   --surface-glow-primary: rgba(15, 118, 110, 0.13);
   --surface-glow-secondary: rgba(234, 88, 12, 0.1);
+  --surface-stroke: rgba(255, 255, 255, 0.72);
+  --surface-shadow: 0 26px 72px -42px rgba(15, 23, 42, 0.28);
+  --surface-shadow-strong: 0 30px 80px -36px rgba(15, 23, 42, 0.34);
   --layout-surface-start: rgba(255, 255, 255, 0.94);
   --layout-surface-end: rgba(249, 248, 244, 0.98);
   --background: oklch(0.985 0.005 84.6);
@@ -123,6 +126,9 @@
   --sidebar-accent-foreground: oklch(0.955 0.007 84.2);
   --sidebar-border: color-mix(in oklab, var(--theme-primary) 15%, oklch(0.3 0.015 255.1 / 0.85));
   --sidebar-ring: color-mix(in oklab, var(--theme-primary) 42%, oklch(0.955 0.007 84.2));
+  --surface-stroke: rgba(255, 255, 255, 0.09);
+  --surface-shadow: 0 24px 64px -38px rgba(0, 0, 0, 0.6);
+  --surface-shadow-strong: 0 28px 80px -34px rgba(0, 0, 0, 0.68);
   --layout-surface-start: rgba(11, 18, 32, 0.98);
   --layout-surface-end: rgba(7, 14, 24, 1);
 }
@@ -140,7 +146,24 @@
     @apply min-h-svh bg-background text-foreground antialiased;
     background-image:
       radial-gradient(circle at top left, var(--surface-glow-primary), transparent 24%),
-      radial-gradient(circle at bottom right, var(--surface-glow-secondary), transparent 20%);
+      radial-gradient(circle at 82% 16%, color-mix(in oklab, var(--primary) 11%, white), transparent 18%),
+      radial-gradient(circle at bottom right, var(--surface-glow-secondary), transparent 20%),
+      linear-gradient(180deg, color-mix(in oklab, var(--background) 96%, white) 0%, var(--background) 100%);
+    background-attachment: fixed;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.42;
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, var(--border) 62%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--border) 58%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 58%);
   }
 
   #app {
@@ -168,6 +191,42 @@
 
   .rounded-3xl {
     border-radius: var(--radius-3xl) !important;
+  }
+
+  .admin-kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/80;
+  }
+
+  .admin-shell-panel {
+    border: 1px solid var(--surface-stroke);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--card) 92%, white) 0%, color-mix(in oklab, var(--card) 98%, var(--background)) 100%);
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  .admin-shell-panel-strong {
+    border: 1px solid color-mix(in oklab, var(--surface-stroke) 90%, white);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--card) 94%, white) 0%, color-mix(in oklab, var(--card) 88%, var(--background)) 100%);
+    box-shadow: var(--surface-shadow-strong);
+    backdrop-filter: blur(24px);
+  }
+
+  .admin-shell-panel-soft {
+    border: 1px solid color-mix(in oklab, var(--border) 78%, white);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--muted) 36%, white) 0%, color-mix(in oklab, var(--card) 90%, var(--background)) 100%);
+  }
+
+  .admin-toolbar-surface {
+    border: 1px solid color-mix(in oklab, var(--border) 88%, white);
+    background: color-mix(in oklab, var(--card) 88%, white);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+
+  .admin-divider-fade {
+    background: linear-gradient(90deg, transparent 0%, color-mix(in oklab, var(--border) 92%, white) 14%, color-mix(in oklab, var(--border) 92%, white) 86%, transparent 100%);
   }
 
   .surface-scrollbar {

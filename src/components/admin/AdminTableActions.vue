@@ -65,13 +65,13 @@ function trigger(item: AdminTableActionItem, event?: Event) {
 </script>
 
 <template>
-  <div v-if="visibleItems.length" class="flex flex-wrap justify-start gap-x-2 gap-y-1 sm:justify-end">
+  <div v-if="visibleItems.length" class="flex flex-wrap justify-start gap-x-3 gap-y-1.5 sm:justify-end">
     <Button
       v-for="(item, actionIndex) in inlineItems"
       :key="item.key ?? `${item.label}-${actionIndex}`"
       size="sm"
       variant="link"
-      class="h-auto !px-0 text-xs"
+      class="h-auto !px-0 text-xs font-medium"
       :class="[actionClass(item), item.icon ? 'gap-1' : '',]"
       :disabled="isDisabled(item)"
       :title="item.label"
@@ -84,7 +84,7 @@ function trigger(item: AdminTableActionItem, event?: Event) {
 
     <DropdownMenu v-if="overflowItems.length">
       <DropdownMenuTrigger as-child>
-        <Button size="sm" variant="link" class="h-auto gap-1 px-0 text-xs text-muted-foreground hover:text-foreground">
+        <Button size="sm" variant="link" class="h-auto gap-1 px-0 text-xs font-medium text-muted-foreground hover:text-foreground">
           更多
           <MoreHorizontal class="size-3.5" />
         </Button>

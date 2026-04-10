@@ -57,10 +57,11 @@ const form = reactive(defaultForm())
 const canAddDept = computed(() => access.can(deptPerms.add))
 const canEditDept = computed(() => access.can(deptPerms.edit))
 const canRemoveDept = computed(() => access.can(deptPerms.remove))
+
 const deptRowActions: AdminTableActionItem[] = [
-  { label: '下级', icon: FolderPlus, tone: 'muted', visible: () => canAddDept.value, onClick: (row) => openCreate(String(row.raw.deptId)) },
-  { label: '编辑', icon: Pencil, tone: 'muted', visible: () => canEditDept.value, onClick: (row) => openEdit(row.raw) },
-  { label: '删除', icon: Trash2, tone: 'danger', visible: () => canRemoveDept.value, onClick: (row) => removeRow(row.raw) },
+  { label: '下级', icon: FolderPlus, tone: 'muted', visible: () => canAddDept.value, onClick: row => openCreate(String(row.raw.deptId)) },
+  { label: '编辑', icon: Pencil, tone: 'muted', visible: () => canEditDept.value, onClick: row => openEdit(row.raw) },
+  { label: '删除', icon: Trash2, tone: 'danger', visible: () => canRemoveDept.value, onClick: row => removeRow(row.raw) },
 ]
 
 const branchRowKeys = computed(() => collectTreeBranchIds(rows.value, treeResolver))
@@ -274,27 +275,11 @@ onMounted(async () => {
 <template>
   <div class="space-y-6">
     <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统管理 / 部门管理</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">部门管理</h1>
-      </div>
+      <p class="admin-kicker">系统管理 / 部门管理</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">部门管理</h1>
+    </div>
 
-    <AdminQueryPanel grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
-      <AdminFormField label="部门名称">
-        <Input v-model="queryParams.deptName" placeholder="请输入部门名称" />
-      </AdminFormField>
-      <AdminFormField label="状态">
-        <Select v-model="queryParams.status">
-          <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="0">正常</SelectItem>
-            <SelectItem value="1">停用</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="部门树">
+    <AdminSectionCard title="部门树" content-class="space-y-4">
       <template #headerExtra>
         <Button v-if="canAddDept" size="sm" @click="openCreate()">
           <Plus class="size-4" />
@@ -302,13 +287,30 @@ onMounted(async () => {
         </Button>
         <Button variant="outline" size="sm" @click="toggleExpandAll">
           <ChevronDown class="size-4" />
-          {{ allExpanded ? '收起全部' : '展开全部' }}
+          {{ allExpanded ? '收起' : '展开' }}
         </Button>
         <Button variant="outline" size="sm" @click="loadList">
           <RefreshCw class="size-4" />
           刷新
         </Button>
       </template>
+
+      <AdminQueryPanel embedded grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
+        <AdminFormField label="部门名称">
+          <Input v-model="queryParams.deptName" placeholder="请输入部门名称" />
+        </AdminFormField>
+        <AdminFormField label="状态">
+          <Select v-model="queryParams.status">
+            <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="0">正常</SelectItem>
+              <SelectItem value="1">停用</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+      </AdminQueryPanel>
+
       <AdminDataTable
         :columns="deptTableColumns"
         :rows="visibleRows"
@@ -345,7 +347,7 @@ onMounted(async () => {
       <DialogContent class="sm:max-w-[860px]">
         <DialogHeader>
           <DialogTitle>{{ formTitle }}</DialogTitle>
-          <DialogDescription>{{ form.deptId ? '修改部门资料。' : '填写部门信息。' }}</DialogDescription>
+          <DialogDescription>{{ form.deptId ? '调整部门信息与层级。' : '创建新的部门节点。' }}</DialogDescription>
         </DialogHeader>
 
         <div class="grid gap-4 md:grid-cols-2">
@@ -392,14 +394,3 @@ onMounted(async () => {
     </Dialog>
   </div>
 </template>
-
-
-
-
-
-
-
-
-
-
-

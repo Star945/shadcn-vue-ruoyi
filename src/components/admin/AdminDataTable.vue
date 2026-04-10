@@ -187,14 +187,27 @@ function handlePageChange(nextPage: number) {
                 />
               </slot>
             </TableHead>
-            <TableHead v-for="column in columns" :key="column.key" :class="column.headerClass">{{ column.title }}</TableHead>
-            <TableHead v-if="withActions" :class="actionHeaderClass">{{ actionHeader }}</TableHead>
+            <TableHead
+              v-for="column in columns"
+              :key="column.key"
+              :class="cn('border-b border-border/70 bg-transparent text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/90', column.headerClass)"
+            >
+              {{ column.title }}
+            </TableHead>
+            <TableHead v-if="withActions" :class="cn('border-b border-border/70 bg-transparent text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/90', actionHeaderClass)">
+              {{ actionHeader }}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableEmpty v-if="loading" :colspan="totalColumns" class="text-muted-foreground">{{ loadingText }}</TableEmpty>
           <TableEmpty v-else-if="!rows.length" :colspan="totalColumns" class="text-muted-foreground">{{ emptyText }}</TableEmpty>
-          <TableRow v-for="(row, index) in rows" v-else :key="resolveRowKey(row, index)">
+          <TableRow
+            v-for="(row, index) in rows"
+            v-else
+            :key="resolveRowKey(row, index)"
+            class="border-b border-border/65 transition-colors hover:bg-muted/20"
+          >
             <TableCell v-if="withSelection" :class="selectionCellClass">
               <slot name="selection" :row="row" :index="index">
                 <Checkbox
@@ -203,7 +216,11 @@ function handlePageChange(nextPage: number) {
                 />
               </slot>
             </TableCell>
-            <TableCell v-for="column in columns" :key="column.key" :class="column.cellClass">
+            <TableCell
+              v-for="column in columns"
+              :key="column.key"
+              :class="cn('py-4 text-sm text-foreground/90', column.cellClass)"
+            >
               <slot :name="`cell-${column.key}`" :row="row" :index="index" :column="column" :value="cellValue(row, column.key)">
                 {{ cellValue(row, column.key) }}
               </slot>
@@ -224,7 +241,7 @@ function handlePageChange(nextPage: number) {
       </Table>
     </div>
 
-    <div v-if="showPagination" class="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-muted/15 px-3 py-3 sm:px-4 xl:flex-row xl:items-center xl:justify-between">
+    <div v-if="showPagination" class="flex flex-col gap-3 px-0 py-2 xl:flex-row xl:items-center xl:justify-between">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
         <span class="text-sm text-muted-foreground">共 {{ total }} 条</span>
         <Select :model-value="String(pageSize)" @update:model-value="updatePageSize">

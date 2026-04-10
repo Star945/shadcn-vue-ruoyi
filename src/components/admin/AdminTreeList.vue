@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<{
   indentSize: 18,
   emptyText: '暂无数据',
   itemClass: '',
-  activeClass: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground',
+  activeClass: 'border-primary/30 bg-primary text-primary-foreground shadow-[0_18px_38px_-26px_color-mix(in_oklab,var(--primary)_80%,transparent)] hover:bg-primary/92 hover:text-primary-foreground',
   getId: (node: Record<string, any>) => node.id ?? node.menuId ?? node.deptId,
   getLabel: (node: Record<string, any>) => String(node.label ?? node.menuName ?? node.deptName ?? node.name ?? '--'),
   getChildren: (node: Record<string, any>) => node.children,
@@ -94,19 +94,19 @@ watch(() => props.nodes, syncExpandedKeys, { immediate: true, deep: true })
 
 <template>
   <div class="space-y-3">
-    <div v-if="hasToolbar" class="flex items-center gap-2">
+    <div v-if="hasToolbar" class="flex items-center gap-2 px-0 py-0">
       <div class="min-w-0 flex flex-1 items-center gap-2">
         <slot name="toolbarLeading" />
       </div>
       <div class="flex shrink-0 items-center gap-1">
         <slot name="toolbarTrailing" />
         <Button v-if="branchIds.length" size="sm" variant="ghost" class="h-8 px-2 text-xs" @click="toggleExpandAll">
-          {{ allExpanded ? '收起全部' : '展开全部' }}
+          {{ allExpanded ? '收起' : '展开' }}
         </Button>
       </div>
     </div>
 
-    <div v-if="visibleNodes.length" class="space-y-1">
+    <div v-if="visibleNodes.length" class="space-y-1.5">
       <div
         v-for="item in visibleNodes"
         :key="item.id"
@@ -127,8 +127,8 @@ watch(() => props.nodes, syncExpandedKeys, { immediate: true, deep: true })
         <button
           v-if="selectionMode === 'single'"
           type="button"
-          class="flex min-h-9 min-w-0 flex-1 items-center rounded-[var(--button-radius)] px-3 text-left text-sm transition"
-          :class="cn(String(modelValue) === item.id ? activeClass : 'hover:bg-muted/60', itemClass)"
+          class="flex min-h-9 min-w-0 flex-1 items-center rounded-[var(--button-radius)] border border-transparent px-3 text-left text-sm transition"
+          :class="cn(String(modelValue) === item.id ? activeClass : 'hover:border-border/60 hover:bg-muted/50', itemClass)"
           @click="updateSingleSelection(item.id)"
         >
           <span class="truncate">{{ item.label }}</span>

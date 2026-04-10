@@ -87,7 +87,7 @@ watch(activePath, syncOpenKeys)
           <SidebarMenuButton
             as-child
             size="lg"
-            class="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground"
+            class="bg-transparent p-0 shadow-none ring-0 hover:bg-transparent"
           >
             <AppBrand />
           </SidebarMenuButton>
@@ -97,7 +97,7 @@ watch(activePath, syncOpenKeys)
 
     <SidebarContent>
       <SidebarGroup>
-        <SidebarGroupLabel v-if="currentLabel">{{ currentLabel }}</SidebarGroupLabel>
+        <SidebarGroupLabel v-if="currentLabel" class="admin-kicker px-1">{{ currentLabel }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             <AppSidebarTreeItem
@@ -115,7 +115,7 @@ watch(activePath, syncOpenKeys)
 
     <SidebarFooter>
       <SidebarGroup>
-        <SidebarGroupLabel>快捷入口</SidebarGroupLabel>
+        <SidebarGroupLabel class="admin-kicker px-1">快捷入口</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="item in quickActions" :key="item.path">
@@ -130,8 +130,8 @@ watch(activePath, syncOpenKeys)
         </SidebarGroupContent>
       </SidebarGroup>
       <SidebarSeparator />
-      <div class="rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/50 p-3 group-data-[collapsible=icon]:hidden">
-        <p class="text-xs uppercase tracking-[0.24em] text-sidebar-foreground/60">当前用户</p>
+      <div class="rounded-[var(--radius-xl)] border border-sidebar-border/80 bg-sidebar-accent/70 p-3 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.55)] group-data-[collapsible=icon]:hidden">
+        <p class="admin-kicker text-sidebar-foreground/65">当前用户</p>
         <p class="mt-2 break-all text-sm font-semibold text-sidebar-foreground">{{ session.user.name }}</p>
         <div class="mt-1 space-y-1 text-xs text-sidebar-foreground/70">
           <p class="break-all">{{ session.user.role }}</p>

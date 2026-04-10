@@ -161,7 +161,7 @@ watch(() => currentRoot.value?.path ?? '', () => {
 </script>
 
 <template>
-  <header class="border-b border-border/40 bg-background/60 shadow-sm backdrop-blur-2xl transition-all">
+  <header class="border-b border-border/50 bg-background/72 shadow-[0_18px_42px_-36px_rgba(15,23,42,0.34)] backdrop-blur-2xl transition-all">
     <div class="mx-auto flex min-h-14 items-center gap-2 px-3 py-2 md:min-h-16 md:gap-3 md:px-6">
       <SidebarTrigger class="-ml-1" />
       <Separator orientation="vertical" class="hidden h-5 sm:flex" />
@@ -178,7 +178,7 @@ watch(() => currentRoot.value?.path ?? '', () => {
 
       <div class="hidden min-w-0 flex-1 md:block">
         <template v-if="ui.layout.topNav">
-          <p class="truncate text-sm font-semibold">{{ pageTitle }}</p>
+          <p class="truncate text-sm font-semibold tracking-tight">{{ pageTitle }}</p>
           <p class="truncate text-xs text-muted-foreground">{{ pageSubtitle }}</p>
         </template>
         <template v-else>
@@ -313,8 +313,8 @@ watch(() => currentRoot.value?.path ?? '', () => {
             v-for="item in topGroups"
             :key="item.path"
             :data-group-id="topGroupId(item.path)"
-            :variant="currentRoot?.path === item.path ? 'default' : 'ghost'"
-            class="h-8 shrink-0 gap-2 px-2.5 text-xs sm:h-9 sm:px-3 sm:text-sm"
+            :variant="currentRoot?.path === item.path ? 'default' : 'outline'"
+            class="h-8 shrink-0 gap-2 px-2.5 text-xs shadow-none sm:h-9 sm:px-3 sm:text-sm"
             @click="goToNode(item)"
           >
             <component :is="resolveIcon(item.icon)" class="size-4" />

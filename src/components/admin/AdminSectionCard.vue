@@ -20,22 +20,22 @@ const props = withDefaults(defineProps<{
 </script>
 
 <template>
-  <Card :class="cn('border-white/60 bg-white/75 dark:border-white/10 dark:bg-white/5', cardClass)">
+  <Card :class="cn('admin-shell-panel-strong', cardClass)">
     <CardHeader
       v-if="!props.hideHeader && (props.title || props.description || $slots.headerExtra)"
-      :class="headerClass"
+      :class="cn('border-b border-border/55 pb-4 sm:pb-5', headerClass)"
     >
       <div class="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
         <div class="min-w-0 space-y-1.5">
-          <CardTitle v-if="title">{{ title }}</CardTitle>
-          <CardDescription v-if="description">{{ description }}</CardDescription>
+          <CardTitle v-if="title" class="text-base font-semibold tracking-tight sm:text-lg">{{ title }}</CardTitle>
+          <CardDescription v-if="description" class="max-w-2xl text-sm leading-6 text-muted-foreground/90">{{ description }}</CardDescription>
         </div>
-        <div v-if="$slots.headerExtra" class="grid w-full grid-cols-1 gap-2 md:flex md:w-auto md:justify-end [&>*]:w-full md:[&>*]:w-auto">
+        <div v-if="$slots.headerExtra" class="grid w-full grid-cols-1 gap-2 md:flex md:w-auto md:flex-wrap md:justify-end [&>*]:w-full md:[&>*]:w-auto">
           <slot name="headerExtra" />
         </div>
       </div>
     </CardHeader>
-    <CardContent :class="contentClass">
+    <CardContent :class="cn('pt-4 sm:pt-5', contentClass)">
       <slot />
     </CardContent>
   </Card>

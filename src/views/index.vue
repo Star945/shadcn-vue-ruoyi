@@ -389,12 +389,17 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <div>
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">{{ copy.eyebrow }}</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">{{ copy.title }}</h1>
-
-        <p class="mt-2 text-xs text-muted-foreground">{{ copy.lastUpdated }} {{ lastUpdated || '--' }}</p>
+        <p class="admin-kicker">{{ copy.eyebrow }}</p>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight sm:text-[2rem]">{{ copy.title }}</h1>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+          把高频入口、实时状态和最近动态收在同一屏，减少往返切换。
+        </p>
+      </div>
+      <div class="admin-shell-panel-soft inline-flex w-full items-center gap-3 rounded-[var(--radius-xl)] px-4 py-3 text-sm text-muted-foreground lg:w-auto">
+        <span class="font-medium text-foreground">{{ copy.lastUpdated }}</span>
+        <span>{{ lastUpdated || '--' }}</span>
       </div>
     </div>
 
@@ -402,10 +407,10 @@ onMounted(() => {
       <Card
         v-for="(metric, index) in metricCards"
         :key="metric.key"
-        class="group animate-in fade-in slide-in-from-bottom-2 border-white/60 bg-white/75 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/5"
+        class="group admin-shell-panel-strong animate-in fade-in slide-in-from-bottom-2 transition-all duration-300 hover:-translate-y-1"
         :style="{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }"
       >
-        <CardHeader class="pb-3">
+        <CardHeader class="pb-2">
           <div class="flex items-center justify-between gap-3">
             <CardTitle class="text-sm font-medium text-muted-foreground">{{ metric.label }}</CardTitle>
             <Badge :variant="metricVariant(metric.tone)">{{ metric.badge }}</Badge>
@@ -423,11 +428,11 @@ onMounted(() => {
           </div>
           <div v-else class="space-y-3">
             <div>
-              <p class="text-3xl font-semibold tracking-tight">{{ metric.value }}</p>
+              <p class="text-[2rem] font-semibold tracking-tight">{{ metric.value }}</p>
               <p class="mt-2 text-sm text-muted-foreground">{{ metric.detail }}</p>
             </div>
             <div>
-              <Button as-child variant="ghost" size="sm" class="-ml-2 px-2">
+              <Button as-child variant="link" size="sm" class="-ml-1 px-1 text-xs font-semibold uppercase tracking-[0.14em] no-underline hover:no-underline">
                 <RouterLink :to="metric.path">{{ metric.linkText }}</RouterLink>
               </Button>
             </div>
@@ -458,7 +463,7 @@ onMounted(() => {
           <div
             v-for="item in recentNotices"
             :key="item.noticeId"
-            class="rounded-3xl border px-4 py-4"
+            class="admin-shell-panel-soft rounded-3xl px-4 py-4"
             :class="item.isRead ? 'border-border/60 bg-muted/15' : 'border-primary/20 bg-primary/5'"
           >
             <div class="flex items-start justify-between gap-4">
@@ -485,7 +490,7 @@ onMounted(() => {
               v-for="item in quickLinks"
               :key="item.path"
               :to="item.path"
-              class="rounded-3xl border border-border/60 bg-muted/20 px-4 py-4 transition hover:border-border hover:bg-muted/35"
+              class="admin-shell-panel-soft rounded-3xl px-4 py-4 transition hover:-translate-y-[1px] hover:border-border"
             >
               <div class="flex items-start gap-3">
                 <div class="mt-0.5 flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -508,8 +513,8 @@ onMounted(() => {
             <Button as-child variant="outline" size="sm"><RouterLink to="/monitor/server">{{ copy.viewMonitor }}</RouterLink></Button>
           </template>
           <div class="grid gap-3">
-            <div v-for="item in runtimeItems" :key="item.label" class="rounded-3xl border border-border/60 bg-muted/20 px-4 py-4">
-              <p class="text-sm text-muted-foreground">{{ item.label }}</p>
+            <div v-for="item in runtimeItems" :key="item.label" class="admin-shell-panel-soft rounded-3xl px-4 py-4">
+              <p class="admin-kicker tracking-[0.18em]">{{ item.label }}</p>
               <p class="mt-2 text-sm font-semibold leading-6">{{ item.value }}</p>
             </div>
           </div>

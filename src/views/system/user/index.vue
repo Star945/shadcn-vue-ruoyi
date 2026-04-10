@@ -10,9 +10,9 @@ import { addUser, changeUserStatus, delUser, deptTreeSelect, exportUser, getUser
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminDateRangePicker from '@/components/admin/AdminDateRangePicker.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
-import AdminTableActions from '@/components/admin/AdminTableActions.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
+import AdminTableActions from '@/components/admin/AdminTableActions.vue'
 import AdminTreeList from '@/components/admin/AdminTreeList.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -470,8 +470,8 @@ onMounted(async () => {
   <div class="space-y-6">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统管理 / 用户管理</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">用户管理</h1>
+        <p class="admin-kicker">系统管理 / 用户管理</p>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight">用户管理</h1>
       </div>
     </div>
 
@@ -500,7 +500,7 @@ onMounted(async () => {
               <template #toolbarLeading>
                 <button
                   type="button"
-                  class="flex min-h-8 items-center rounded-[var(--button-radius)] px-3 text-left text-sm transition"
+                  class="flex min-h-8 items-center whitespace-nowrap rounded-[var(--button-radius)] px-3 text-left text-sm transition"
                   :class="selectedDeptId === '' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/60'"
                   @click="handleDeptFilterChange('')"
                 >
@@ -516,7 +516,7 @@ onMounted(async () => {
       </AdminSectionCard>
     </Collapsible>
 
-    <div class="grid gap-4 xl:grid-cols-[260px_1fr]">
+    <div class="grid gap-4 xl:grid-cols-[228px_1fr]">
       <AdminSectionCard title="部门筛选" :description="selectedDeptLabel" card-class="hidden xl:block" content-class="space-y-2">
         <AdminTreeList
           :nodes="deptOptions"
@@ -530,7 +530,7 @@ onMounted(async () => {
           <template #toolbarLeading>
             <button
               type="button"
-              class="flex min-h-8 items-center rounded-[var(--button-radius)] px-3 text-left text-sm transition"
+              class="flex min-h-8 items-center whitespace-nowrap rounded-[var(--button-radius)] px-3 text-left text-sm transition"
               :class="selectedDeptId === '' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/60'"
               @click="handleDeptFilterChange('')"
             >
@@ -544,31 +544,7 @@ onMounted(async () => {
       </AdminSectionCard>
 
       <div class="space-y-4">
-        <AdminQueryPanel grid-class="md:grid-cols-2 xl:grid-cols-3" advanced-grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
-          <AdminFormField label="用户名">
-            <Input v-model="queryParams.userName" placeholder="请输入用户名" />
-          </AdminFormField>
-          <AdminFormField label="手机号码">
-            <Input v-model="queryParams.phonenumber" placeholder="请输入手机号码" />
-          </AdminFormField>
-          <AdminFormField label="状态">
-            <Select v-model="queryParams.status">
-              <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部</SelectItem>
-                <SelectItem value="0">正常</SelectItem>
-                <SelectItem value="1">停用</SelectItem>
-              </SelectContent>
-            </Select>
-          </AdminFormField>
-          <template #advanced>
-            <AdminFormField label="日期范围" field-class="md:col-span-2">
-              <AdminDateRangePicker v-model:start="queryParams.beginDate" v-model:end="queryParams.endDate" />
-            </AdminFormField>
-          </template>
-        </AdminQueryPanel>
-
-        <AdminSectionCard title="用户列表">
+        <AdminSectionCard title="用户列表" description="用户账号、状态与所属部门">
           <template #headerExtra>
             <Button v-if="canAddUser" size="sm" @click="openCreate">
               <Plus class="size-4" />
@@ -583,11 +559,39 @@ onMounted(async () => {
               刷新
             </Button>
           </template>
+          <AdminQueryPanel embedded grid-class="md:grid-cols-2 xl:grid-cols-3" advanced-grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
+            <AdminFormField label="用户名">
+              <Input v-model="queryParams.userName" placeholder="请输入用户名" />
+            </AdminFormField>
+            <AdminFormField label="手机号码">
+              <Input v-model="queryParams.phonenumber" placeholder="请输入手机号码" />
+            </AdminFormField>
+            <AdminFormField label="状态">
+              <Select v-model="queryParams.status">
+                <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="0">正常</SelectItem>
+                  <SelectItem value="1">停用</SelectItem>
+                </SelectContent>
+              </Select>
+            </AdminFormField>
+            <template #advanced>
+              <AdminFormField label="日期范围" field-class="md:col-span-2">
+                <AdminDateRangePicker v-model:start="queryParams.beginDate" v-model:end="queryParams.endDate" />
+              </AdminFormField>
+            </template>
+          </AdminQueryPanel>
+
+          <div class="mt-4 mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span class="admin-shell-panel-soft rounded-full px-3 py-1.5 text-foreground">{{ total }} 条记录</span>
+            <span class="admin-shell-panel-soft rounded-full px-3 py-1.5">部门：{{ selectedDeptLabel }}</span>
+          </div>
           <div v-if="loading && !rows.length" class="rounded-3xl border border-border/60 bg-muted/15 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
             正在加载用户数据...
           </div>
           <div v-else-if="rows.length" class="space-y-3 md:hidden">
-            <div v-for="row in rows" :key="String(row.userId)" class="rounded-3xl border border-border/60 bg-muted/10 p-4">
+            <div v-for="row in rows" :key="String(row.userId)" class="admin-shell-panel-soft rounded-3xl p-4">
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <p class="truncate text-base font-semibold">{{ row.userName || '--' }}</p>
@@ -627,7 +631,7 @@ onMounted(async () => {
             暂无数据
           </div>
 
-          <div class="rounded-[var(--radius-lg)] border border-border/60 bg-muted/15 px-3 py-3 md:hidden">
+          <div class="admin-shell-panel-soft rounded-[var(--radius-xl)] px-3 py-3 md:hidden">
             <div class="flex items-center justify-between text-sm text-muted-foreground">
               <span>共 {{ total }} 条</span>
               <Select :model-value="String(queryParams.pageSize)" @update:model-value="changePageSize(Number($event))">
@@ -648,39 +652,39 @@ onMounted(async () => {
 
           <div class="hidden md:block">
             <AdminDataTable
-            :columns="userTableColumns"
-            :rows="rows"
-            row-key="userId"
-            :loading="loading"
-            loading-text="正在加载用户数据..."
-            empty-text="暂无数据"
-            :actions="userRowActions"
-            action-header-class="w-[240px] text-right"
-            :show-pagination="true"
-            :total="total"
-            :page-num="queryParams.pageNum"
-            :page-size="queryParams.pageSize"
-            @update:page-size="changePageSize"
-            @update:page-num="changePage($event - queryParams.pageNum)"
-            @previous="changePage(-1)"
-            @next="changePage(1)"
-          >
-            <template #cell-userName="{ value }">
-              <span class="font-medium">{{ value }}</span>
-            </template>
-            <template #cell-deptName="{ row }">
-              {{ row.dept?.deptName ?? row.deptName ?? '--' }}
-            </template>
-            <template #cell-phonenumber="{ row }">
-              {{ row.phonenumber || '--' }}
-            </template>
-            <template #cell-status="{ row }">
-              <div class="flex items-center justify-center gap-2">
-                <Switch v-if="canChangeUserStatus" :model-value="String(row.status) === '0'" @update:model-value="(value) => toggleStatus(row, Boolean(value))" />
-                <Badge variant="outline">{{ statusText(String(row.status)) }}</Badge>
-              </div>
-            </template>
-          </AdminDataTable>
+              :columns="userTableColumns"
+              :rows="rows"
+              row-key="userId"
+              :loading="loading"
+              loading-text="正在加载用户数据..."
+              empty-text="暂无数据"
+              :actions="userRowActions"
+              action-header-class="w-[240px] text-right"
+              :show-pagination="true"
+              :total="total"
+              :page-num="queryParams.pageNum"
+              :page-size="queryParams.pageSize"
+              @update:page-size="changePageSize"
+              @update:page-num="changePage($event - queryParams.pageNum)"
+              @previous="changePage(-1)"
+              @next="changePage(1)"
+            >
+              <template #cell-userName="{ value }">
+                <span class="font-medium">{{ value }}</span>
+              </template>
+              <template #cell-deptName="{ row }">
+                {{ row.dept?.deptName ?? row.deptName ?? '--' }}
+              </template>
+              <template #cell-phonenumber="{ row }">
+                {{ row.phonenumber || '--' }}
+              </template>
+              <template #cell-status="{ row }">
+                <div class="flex items-center justify-center gap-2">
+                  <Switch v-if="canChangeUserStatus" :model-value="String(row.status) === '0'" @update:model-value="(value) => toggleStatus(row, Boolean(value))" />
+                  <Badge variant="outline">{{ statusText(String(row.status)) }}</Badge>
+                </div>
+              </template>
+            </AdminDataTable>
           </div>
         </AdminSectionCard>
       </div>

@@ -224,7 +224,7 @@ watch([activePath, () => tags.value.map(tag => tag.path).join('|')], () => {
 </script>
 
 <template>
-  <div class="border-b border-border/60 bg-background/80 backdrop-blur-xl">
+  <div class="border-b border-border/55 bg-background/74 backdrop-blur-xl">
     <div class="mx-auto flex max-w-[1600px] items-center gap-2 px-2.5 py-1.5 sm:px-3 md:gap-3 md:px-6 md:py-2">
       <OverlayScrollbar
         ref="tagsScrollRef"
@@ -239,7 +239,7 @@ watch([activePath, () => tags.value.map(tag => tag.path).join('|')], () => {
           :key="tag.path"
           :data-tag-id="tagId(tag.path)"
           :variant="activePath === tag.path ? 'default' : 'ghost'"
-          class="h-8 shrink-0 gap-1.5 px-2 text-xs sm:px-2.5 md:h-9 md:px-3 md:text-sm"
+          class="h-8 shrink-0 gap-1.5 border border-transparent px-2 text-xs shadow-none sm:px-2.5 md:h-9 md:px-3 md:text-sm"
           @click="router.push(tag.path)"
           @contextmenu.prevent="openContextMenu(tag, $event)"
         >

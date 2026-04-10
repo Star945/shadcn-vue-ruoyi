@@ -58,10 +58,11 @@ const form = reactive(defaultForm())
 const canAddMenu = computed(() => access.can(menuPerms.add))
 const canEditMenu = computed(() => access.can(menuPerms.edit))
 const canRemoveMenu = computed(() => access.can(menuPerms.remove))
+
 const menuRowActions: AdminTableActionItem[] = [
-  { label: '下级', icon: FolderPlus, tone: 'muted', visible: () => canAddMenu.value, onClick: (row) => openCreate(String(row.raw.menuId)) },
-  { label: '编辑', icon: Pencil, tone: 'muted', visible: () => canEditMenu.value, onClick: (row) => openEdit(row.raw) },
-  { label: '删除', icon: Trash2, tone: 'danger', visible: () => canRemoveMenu.value, onClick: (row) => removeRow(row.raw) },
+  { label: '下级', icon: FolderPlus, tone: 'muted', visible: () => canAddMenu.value, onClick: row => openCreate(String(row.raw.menuId)) },
+  { label: '编辑', icon: Pencil, tone: 'muted', visible: () => canEditMenu.value, onClick: row => openEdit(row.raw) },
+  { label: '删除', icon: Trash2, tone: 'danger', visible: () => canRemoveMenu.value, onClick: row => removeRow(row.raw) },
 ]
 
 const branchRowKeys = computed(() => collectTreeBranchIds(rows.value, treeResolver))
@@ -303,27 +304,11 @@ onMounted(async () => {
 <template>
   <div class="space-y-6">
     <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">系统管理 / 菜单管理</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">菜单管理</h1>
-      </div>
+      <p class="admin-kicker">系统管理 / 菜单管理</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">菜单管理</h1>
+    </div>
 
-    <AdminQueryPanel grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
-      <AdminFormField label="菜单名称">
-        <Input v-model="queryParams.menuName" placeholder="请输入菜单名称" />
-      </AdminFormField>
-      <AdminFormField label="状态">
-        <Select v-model="queryParams.status">
-          <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="0">正常</SelectItem>
-            <SelectItem value="1">停用</SelectItem>
-          </SelectContent>
-        </Select>
-      </AdminFormField>
-    </AdminQueryPanel>
-
-    <AdminSectionCard title="菜单树">
+    <AdminSectionCard title="菜单树" content-class="space-y-4">
       <template #headerExtra>
         <Button v-if="canAddMenu" size="sm" @click="openCreate()">
           <Plus class="size-4" />
@@ -331,13 +316,30 @@ onMounted(async () => {
         </Button>
         <Button variant="outline" size="sm" @click="toggleExpandAll">
           <ChevronDown class="size-4" />
-          {{ allExpanded ? '收起全部' : '展开全部' }}
+          {{ allExpanded ? '收起' : '展开' }}
         </Button>
         <Button variant="outline" size="sm" @click="loadList">
           <RefreshCw class="size-4" />
           刷新
         </Button>
       </template>
+
+      <AdminQueryPanel embedded grid-class="md:grid-cols-2 xl:grid-cols-3" @query="handleQuery" @reset="handleResetQuery">
+        <AdminFormField label="菜单名称">
+          <Input v-model="queryParams.menuName" placeholder="请输入菜单名称" />
+        </AdminFormField>
+        <AdminFormField label="状态">
+          <Select v-model="queryParams.status">
+            <SelectTrigger><SelectValue placeholder="请选择状态" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="0">正常</SelectItem>
+              <SelectItem value="1">停用</SelectItem>
+            </SelectContent>
+          </Select>
+        </AdminFormField>
+      </AdminQueryPanel>
+
       <AdminDataTable
         :columns="menuTableColumns"
         :rows="visibleRows"
@@ -380,7 +382,7 @@ onMounted(async () => {
       <DialogContent class="sm:max-w-[860px]">
         <DialogHeader>
           <DialogTitle>{{ formTitle }}</DialogTitle>
-          <DialogDescription>{{ form.menuId ? '修改菜单资料。' : '填写菜单信息。' }}</DialogDescription>
+          <DialogDescription>{{ form.menuId ? '调整菜单信息与路由配置。' : '创建新的菜单节点。' }}</DialogDescription>
         </DialogHeader>
 
         <div class="grid gap-4 md:grid-cols-2">
@@ -452,14 +454,3 @@ onMounted(async () => {
     </Dialog>
   </div>
 </template>
-
-
-
-
-
-
-
-
-
-
-
