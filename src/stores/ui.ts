@@ -28,6 +28,7 @@ interface UiState {
   theme: ThemeMode
   themePresetId: string
   useCustomTheme: boolean
+  useThemeLinkedForegrounds: boolean
   customTheme: ThemeCustomPalette
   layout: LayoutSettings
   themeSheetOpen: boolean
@@ -54,6 +55,7 @@ export const useUiStore = defineStore('ui', {
     theme: 'light',
     themePresetId: defaultThemePresetId,
     useCustomTheme: false,
+    useThemeLinkedForegrounds: false,
     customTheme: createThemeCustomPalette(defaultThemePresetId),
     layout: defaultLayoutSettings(),
     themeSheetOpen: false,
@@ -66,6 +68,7 @@ export const useUiStore = defineStore('ui', {
         mode: state.theme,
         presetId: state.themePresetId,
         useCustomTheme: state.useCustomTheme,
+        useThemeLinkedForegrounds: state.useThemeLinkedForegrounds,
         customTheme: state.customTheme,
       }
     },
@@ -79,6 +82,7 @@ export const useUiStore = defineStore('ui', {
         theme: this.theme,
         themePresetId: this.themePresetId,
         useCustomTheme: this.useCustomTheme,
+        useThemeLinkedForegrounds: this.useThemeLinkedForegrounds,
         customTheme: this.customTheme,
         layout: this.layout,
         visitedTags: this.visitedTags,
@@ -98,6 +102,7 @@ export const useUiStore = defineStore('ui', {
         this.theme = parsed.theme === 'dark' ? 'dark' : 'light'
         this.themePresetId = typeof parsed.themePresetId === 'string' ? parsed.themePresetId : defaultThemePresetId
         this.useCustomTheme = Boolean(parsed.useCustomTheme)
+        this.useThemeLinkedForegrounds = Boolean(parsed.useThemeLinkedForegrounds)
         this.customTheme = {
           ...createThemeCustomPalette(this.themePresetId),
           ...(parsed.customTheme ?? {}),
@@ -153,6 +158,11 @@ export const useUiStore = defineStore('ui', {
       this.applyTheme()
       this.persist()
     },
+    setUseThemeLinkedForegrounds(value: boolean) {
+      this.useThemeLinkedForegrounds = value
+      this.applyTheme()
+      this.persist()
+    },
     updateCustomTheme(patch: Partial<ThemeCustomPalette>) {
       this.customTheme = {
         ...this.customTheme,
@@ -165,6 +175,7 @@ export const useUiStore = defineStore('ui', {
     resetThemeConfig() {
       this.themePresetId = defaultThemePresetId
       this.useCustomTheme = false
+      this.useThemeLinkedForegrounds = false
       this.customTheme = createThemeCustomPalette(defaultThemePresetId)
       this.layout = defaultLayoutSettings()
       this.applyTheme()

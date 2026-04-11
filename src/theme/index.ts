@@ -13,6 +13,7 @@ export interface ThemeApplication {
   mode: ThemeMode
   presetId?: string
   useCustomTheme?: boolean
+  useThemeLinkedForegrounds?: boolean
   customTheme?: ThemeCustomPalette
 }
 
@@ -24,6 +25,7 @@ export interface ResolvedThemeVisuals {
   primaryForeground: string
   accentForeground: string
   sidebarPrimaryForeground: string
+  sidebarAccentForeground: string
   glowPrimary: string
   glowSecondary: string
   chartLineStart: string
@@ -82,12 +84,21 @@ function pickForeground(hex: string) {
   return brightness > 158 ? '#0f172a' : '#f8fafc'
 }
 
+function deriveLinkedForeground(base: string, themeColor: string) {
+  const normalizedBase = normalizeHex(base, pickForeground(themeColor))
+  const ratio = normalizedBase === '#f8fafc' ? 0.18 : 0.24
+  return mixHex(normalizedBase, themeColor, ratio)
+}
+
 function resolvePalette(palette: ThemePalette, customTheme?: ThemeCustomPalette) {
   return {
     primary: normalizeHex(customTheme?.primary ?? palette.primary, palette.primary),
     accent: normalizeHex(customTheme?.accent ?? palette.accent, palette.accent),
     sidebarPrimary: normalizeHex(customTheme?.sidebarPrimary ?? palette.sidebarPrimary, palette.sidebarPrimary),
     radius: Number.isFinite(customTheme?.radius) ? Number(customTheme?.radius) : undefined,
+    primaryForeground: palette.primaryForeground,
+    accentForeground: palette.accentForeground,
+    sidebarPrimaryForeground: palette.sidebarPrimaryForeground,
   }
 }
 
@@ -112,9 +123,29 @@ export function resolveThemeVisuals(application: ThemeApplication): ResolvedThem
     ? resolvePalette(palette, application.customTheme)
     : resolvePalette(palette)
 
-  const primaryForeground = pickForeground(selected.primary)
-  const accentForeground = pickForeground(selected.accent)
-  const sidebarPrimaryForeground = pickForeground(selected.sidebarPrimary)
+  const neutralPrimaryForeground = selected.primaryForeground
+    ? normalizeHex(selected.primaryForeground, pickForeground(selected.primary))
+    : pickForeground(selected.primary)
+  const neutralAccentForeground = selected.accentForeground
+    ? normalizeHex(selected.accentForeground, pickForeground(selected.accent))
+    : pickForeground(selected.accent)
+  const neutralSidebarPrimaryForeground = selected.sidebarPrimaryForeground
+    ? normalizeHex(selected.sidebarPrimaryForeground, pickForeground(selected.sidebarPrimary))
+    : pickForeground(selected.sidebarPrimary)
+  const neutralSidebarAccentForeground = application.mode === 'dark' ? '#f8fafc' : '#0f172a'
+
+  const primaryForeground = application.useThemeLinkedForegrounds
+    ? deriveLinkedForeground(neutralPrimaryForeground, selected.primary)
+    : neutralPrimaryForeground
+  const accentForeground = application.useThemeLinkedForegrounds
+    ? deriveLinkedForeground(neutralAccentForeground, selected.accent)
+    : neutralAccentForeground
+  const sidebarPrimaryForeground = application.useThemeLinkedForegrounds
+    ? deriveLinkedForeground(neutralSidebarPrimaryForeground, selected.sidebarPrimary)
+    : neutralSidebarPrimaryForeground
+  const sidebarAccentForeground = application.useThemeLinkedForegrounds
+    ? deriveLinkedForeground(neutralSidebarAccentForeground, selected.primary)
+    : neutralSidebarAccentForeground
   const glowPrimary = toRgba(selected.primary, application.mode === 'dark' ? 0.18 : 0.14)
   const glowSecondary = toRgba(selected.accent, application.mode === 'dark' ? 0.15 : 0.12)
 
@@ -126,6 +157,7 @@ export function resolveThemeVisuals(application: ThemeApplication): ResolvedThem
     primaryForeground,
     accentForeground,
     sidebarPrimaryForeground,
+    sidebarAccentForeground,
     glowPrimary,
     glowSecondary,
     chartLineStart: selected.primary,
@@ -156,6 +188,7 @@ export function applyTheme(root: HTMLElement, application: ThemeApplication) {
   root.style.setProperty('--theme-accent-foreground', visuals.accentForeground)
   root.style.setProperty('--theme-sidebar-primary', visuals.sidebarPrimary)
   root.style.setProperty('--theme-sidebar-primary-foreground', visuals.sidebarPrimaryForeground)
+  root.style.setProperty('--theme-sidebar-accent-foreground', visuals.sidebarAccentForeground)
   root.style.setProperty('--surface-glow-primary', visuals.glowPrimary)
   root.style.setProperty('--surface-glow-secondary', visuals.glowSecondary)
   root.style.setProperty('--theme-chart-primary', visuals.chartLineStart)

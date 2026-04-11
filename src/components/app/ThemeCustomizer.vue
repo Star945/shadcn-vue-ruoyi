@@ -7,8 +7,8 @@ import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { getThemePreset, resolveThemeVisuals } from '@/theme'
-import { useUiStore } from '@/stores/ui'
 import { themePresets } from '@/theme/presets'
+import { useUiStore } from '@/stores/ui'
 
 const ui = useUiStore()
 
@@ -21,7 +21,7 @@ const layoutOptions = [
   {
     key: 'topNav',
     title: '顶部导航',
-    description: '把一级栏目切到头部展示。',
+    description: '把一级栏目切到头部显示。',
   },
   {
     key: 'tagsView',
@@ -36,7 +36,7 @@ const layoutOptions = [
   {
     key: 'fixedHeader',
     title: '固定顶部栏',
-    description: '滚动时保持顶部区域固定。',
+    description: '滚动时保持头部区域固定。',
   },
   {
     key: 'showLogo',
@@ -59,6 +59,7 @@ function presetVisuals(presetId: string) {
   return resolveThemeVisuals({
     mode: ui.theme,
     presetId,
+    useThemeLinkedForegrounds: ui.useThemeLinkedForegrounds,
   })
 }
 
@@ -73,6 +74,7 @@ function previewSidebarStyle(presetId: string) {
   const visuals = presetVisuals(presetId)
   return {
     background: `linear-gradient(180deg, ${visuals.sidebarPrimary}, color-mix(in oklab, ${visuals.sidebarPrimary} 74%, ${visuals.primary}))`,
+    color: visuals.sidebarPrimaryForeground,
   }
 }
 
@@ -86,29 +88,36 @@ function previewLineStyle(presetId: string) {
 
 function previewChipStyle(presetId: string, kind: 'primary' | 'accent' | 'sidebar') {
   const visuals = presetVisuals(presetId)
-  const color = kind === 'primary' ? visuals.primary : kind === 'accent' ? visuals.accent : visuals.sidebarPrimary
-  const foreground = kind === 'primary'
+  const backgroundColor = kind === 'primary'
+    ? visuals.primary
+    : kind === 'accent'
+      ? visuals.accent
+      : visuals.sidebarPrimary
+  const color = kind === 'primary'
     ? visuals.primaryForeground
     : kind === 'accent'
       ? visuals.accentForeground
       : visuals.sidebarPrimaryForeground
 
   return {
-    backgroundColor: color,
-    color: foreground,
+    backgroundColor,
+    color,
   }
 }
 </script>
 
 <template>
   <Sheet :open="ui.themeSheetOpen" @update:open="ui.setThemeSheetOpen">
-    <SheetContent side="right" class="flex h-svh w-full flex-col overflow-hidden border-l border-border/70 bg-background/96 p-0 sm:max-w-[460px]">
+    <SheetContent
+      side="right"
+      class="flex h-svh w-full flex-col overflow-hidden border-l border-border/70 bg-background/96 p-0 sm:max-w-[460px]"
+    >
       <SheetHeader class="shrink-0 px-6 pt-6">
         <SheetTitle>界面设置</SheetTitle>
         <SheetDescription>调整主题、品牌和布局风格。</SheetDescription>
       </SheetHeader>
 
-      <div class="flex-1 overflow-y-auto surface-scrollbar px-6 py-6">
+      <div class="surface-scrollbar flex-1 overflow-y-auto px-6 py-6">
         <div class="space-y-6 pr-1">
           <section class="space-y-3">
             <div class="flex items-center justify-between">
@@ -119,8 +128,27 @@ function previewChipStyle(presetId: string, kind: 'primary' | 'accent' | 'sideba
               <Badge variant="outline">{{ ui.theme === 'dark' ? '暗色' : '亮色' }}</Badge>
             </div>
             <div class="grid grid-cols-2 gap-2">
-              <Button :variant="ui.theme === 'light' ? 'default' : 'outline'" @click="ui.setTheme('light')">浅色模式</Button>
-              <Button :variant="ui.theme === 'dark' ? 'default' : 'outline'" @click="ui.setTheme('dark')">深色模式</Button>
+              <Button :variant="ui.theme === 'light' ? 'default' : 'outline'" @click="ui.setTheme('light')">
+                浅色模式
+              </Button>
+              <Button :variant="ui.theme === 'dark' ? 'default' : 'outline'" @click="ui.setTheme('dark')">
+                深色模式
+              </Button>
+            </div>
+            <div class="rounded-3xl border border-border/70 bg-card/60 p-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="space-y-1 pr-2">
+                  <p class="text-sm font-medium">主题前景跟随</p>
+                  <p class="text-xs leading-5 text-muted-foreground">
+                    开启后，按钮、标签和激活态的文字会带一点主题色倾向；关闭后恢复常规黑白前景。
+                  </p>
+                </div>
+                <Switch
+                  :model-value="ui.useThemeLinkedForegrounds"
+                  class="mt-0.5"
+                  @update:model-value="value => ui.setUseThemeLinkedForegrounds(Boolean(value))"
+                />
+              </div>
             </div>
           </section>
 
@@ -132,7 +160,7 @@ function previewChipStyle(presetId: string, kind: 'primary' | 'accent' | 'sideba
                 <p class="text-sm font-medium">主题预设</p>
                 <p class="text-xs text-muted-foreground">当前预设：{{ preset.name }}</p>
               </div>
-              <Badge variant="secondary">活泼版</Badge>
+              <Badge variant="secondary">活泼系</Badge>
             </div>
 
             <div class="grid gap-3">
@@ -144,14 +172,17 @@ function previewChipStyle(presetId: string, kind: 'primary' | 'accent' | 'sideba
                 :class="ui.themePresetId === item.id ? 'border-primary bg-primary/5 shadow-[0_24px_40px_-30px_var(--surface-glow-primary)]' : 'border-border/70 bg-card/60 hover:bg-card/80'"
                 @click="ui.setThemePreset(item.id)"
               >
-                <div class="overflow-hidden rounded-[calc(var(--radius)*1.05)] border border-black/5 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] dark:border-white/8" :style="previewSurfaceStyle(item.id)">
+                <div
+                  class="overflow-hidden rounded-[calc(var(--radius)*1.05)] border border-black/5 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] dark:border-white/8"
+                  :style="previewSurfaceStyle(item.id)"
+                >
                   <div class="grid grid-cols-[56px_1fr] gap-3">
-                    <div class="rounded-[calc(var(--radius)*0.95)] p-2.5 text-white" :style="previewSidebarStyle(item.id)">
+                    <div class="rounded-[calc(var(--radius)*0.95)] p-2.5" :style="previewSidebarStyle(item.id)">
                       <div class="mb-3 flex size-7 items-center justify-center rounded-xl bg-white/16 text-[10px] font-semibold">R</div>
                       <div class="space-y-1.5">
-                        <div class="h-2 rounded-full bg-white/70" />
-                        <div class="h-2 w-8 rounded-full bg-white/28" />
-                        <div class="h-2 w-6 rounded-full bg-white/18" />
+                        <div class="h-2 rounded-full bg-current/70" />
+                        <div class="h-2 w-8 rounded-full bg-current/28" />
+                        <div class="h-2 w-6 rounded-full bg-current/18" />
                       </div>
                     </div>
                     <div class="space-y-2">
@@ -162,11 +193,15 @@ function previewChipStyle(presetId: string, kind: 'primary' | 'accent' | 'sideba
                       <div class="grid grid-cols-2 gap-2">
                         <div class="rounded-2xl border border-white/45 bg-white/72 p-2.5 dark:border-white/10 dark:bg-black/18">
                           <div class="h-2 w-10 rounded-full bg-slate-300/80 dark:bg-white/12" />
-                          <div class="mt-2 h-5 rounded-full" :style="previewChipStyle(item.id, 'primary')" />
+                          <div class="mt-2 flex h-5 items-center justify-center rounded-full text-[10px] font-semibold" :style="previewChipStyle(item.id, 'primary')">
+                            Aa
+                          </div>
                         </div>
                         <div class="rounded-2xl border border-white/45 bg-white/72 p-2.5 dark:border-white/10 dark:bg-black/18">
                           <div class="h-2 w-8 rounded-full bg-slate-300/80 dark:bg-white/12" />
-                          <div class="mt-2 h-5 rounded-full" :style="previewChipStyle(item.id, 'accent')" />
+                          <div class="mt-2 flex h-5 items-center justify-center rounded-full text-[10px] font-semibold" :style="previewChipStyle(item.id, 'accent')">
+                            Aa
+                          </div>
                         </div>
                       </div>
                       <div class="rounded-2xl border border-white/45 bg-white/72 px-3 py-4 dark:border-white/10 dark:bg-black/18">
@@ -237,31 +272,60 @@ function previewChipStyle(presetId: string, kind: 'primary' | 'accent' | 'sideba
               <label class="space-y-2 text-sm">
                 <span class="font-medium">主色</span>
                 <div class="flex items-center gap-3">
-                  <input class="h-10 w-14 rounded-xl border border-border bg-transparent p-1" type="color" :value="customTheme.primary" @input="ui.updateCustomTheme({ primary: ($event.target as HTMLInputElement).value })">
-                  <div class="flex h-10 flex-1 items-center rounded-2xl border border-border/70 bg-background/75 px-3 text-sm text-foreground">{{ customTheme.primary.toUpperCase() }}</div>
+                  <input
+                    class="h-10 w-14 rounded-xl border border-border bg-transparent p-1"
+                    type="color"
+                    :value="customTheme.primary"
+                    @input="ui.updateCustomTheme({ primary: ($event.target as HTMLInputElement).value })"
+                  >
+                  <div class="flex h-10 flex-1 items-center rounded-2xl border border-border/70 bg-background/75 px-3 text-sm text-foreground">
+                    {{ customTheme.primary.toUpperCase() }}
+                  </div>
                 </div>
               </label>
 
               <label class="space-y-2 text-sm">
                 <span class="font-medium">强调色</span>
                 <div class="flex items-center gap-3">
-                  <input class="h-10 w-14 rounded-xl border border-border bg-transparent p-1" type="color" :value="customTheme.accent" @input="ui.updateCustomTheme({ accent: ($event.target as HTMLInputElement).value })">
-                  <div class="flex h-10 flex-1 items-center rounded-2xl border border-border/70 bg-background/75 px-3 text-sm text-foreground">{{ customTheme.accent.toUpperCase() }}</div>
+                  <input
+                    class="h-10 w-14 rounded-xl border border-border bg-transparent p-1"
+                    type="color"
+                    :value="customTheme.accent"
+                    @input="ui.updateCustomTheme({ accent: ($event.target as HTMLInputElement).value })"
+                  >
+                  <div class="flex h-10 flex-1 items-center rounded-2xl border border-border/70 bg-background/75 px-3 text-sm text-foreground">
+                    {{ customTheme.accent.toUpperCase() }}
+                  </div>
                 </div>
               </label>
 
               <label class="space-y-2 text-sm">
                 <span class="font-medium">侧栏主色</span>
                 <div class="flex items-center gap-3">
-                  <input class="h-10 w-14 rounded-xl border border-border bg-transparent p-1" type="color" :value="customTheme.sidebarPrimary" @input="ui.updateCustomTheme({ sidebarPrimary: ($event.target as HTMLInputElement).value })">
-                  <div class="flex h-10 flex-1 items-center rounded-2xl border border-border/70 bg-background/75 px-3 text-sm text-foreground">{{ customTheme.sidebarPrimary.toUpperCase() }}</div>
+                  <input
+                    class="h-10 w-14 rounded-xl border border-border bg-transparent p-1"
+                    type="color"
+                    :value="customTheme.sidebarPrimary"
+                    @input="ui.updateCustomTheme({ sidebarPrimary: ($event.target as HTMLInputElement).value })"
+                  >
+                  <div class="flex h-10 flex-1 items-center rounded-2xl border border-border/70 bg-background/75 px-3 text-sm text-foreground">
+                    {{ customTheme.sidebarPrimary.toUpperCase() }}
+                  </div>
                 </div>
               </label>
 
               <label class="space-y-2 text-sm">
                 <span class="font-medium">圆角半径</span>
                 <div class="space-y-2">
-                  <input class="w-full accent-[var(--theme-primary)]" type="range" min="0" max="28" step="1" :value="customTheme.radius" @input="ui.updateCustomTheme({ radius: Number(($event.target as HTMLInputElement).value) })">
+                  <input
+                    class="w-full accent-[var(--theme-primary)]"
+                    type="range"
+                    min="0"
+                    max="28"
+                    step="1"
+                    :value="customTheme.radius"
+                    @input="ui.updateCustomTheme({ radius: Number(($event.target as HTMLInputElement).value) })"
+                  >
                   <div class="flex items-center justify-between text-xs text-muted-foreground">
                     <span>完全直角</span>
                     <span>{{ customTheme.radius }}px</span>
@@ -274,14 +338,17 @@ function previewChipStyle(presetId: string, kind: 'primary' | 'accent' | 'sideba
             <div class="overflow-hidden rounded-3xl border border-border/70 bg-card/70 p-4">
               <div class="flex items-center justify-between">
                 <p class="text-sm font-medium">当前效果</p>
-                <Badge variant="outline">图表同步</Badge>
+                <Badge variant="outline">{{ ui.useThemeLinkedForegrounds ? '前景已跟随' : '中性前景' }}</Badge>
               </div>
               <div class="mt-4 grid grid-cols-[72px_1fr] gap-3">
-                <div class="rounded-[calc(var(--radius)*1.1)] p-3" :style="{ background: `linear-gradient(180deg, ${activeVisuals.sidebarPrimary}, color-mix(in oklab, ${activeVisuals.sidebarPrimary} 72%, ${activeVisuals.primary}))` }">
-                  <div class="mb-4 size-8 rounded-2xl bg-white/14" />
+                <div
+                  class="rounded-[calc(var(--radius)*1.1)] p-3"
+                  :style="{ background: `linear-gradient(180deg, ${activeVisuals.sidebarPrimary}, color-mix(in oklab, ${activeVisuals.sidebarPrimary} 72%, ${activeVisuals.primary}))`, color: activeVisuals.sidebarPrimaryForeground }"
+                >
+                  <div class="mb-4 flex size-8 items-center justify-center rounded-2xl bg-white/14 text-xs font-semibold">R</div>
                   <div class="space-y-2">
-                    <div class="h-2 rounded-full bg-white/70" />
-                    <div class="h-2 w-8 rounded-full bg-white/24" />
+                    <div class="h-2 rounded-full bg-current/70" />
+                    <div class="h-2 w-8 rounded-full bg-current/24" />
                   </div>
                 </div>
                 <div class="space-y-3">
@@ -291,8 +358,18 @@ function previewChipStyle(presetId: string, kind: 'primary' | 'accent' | 'sideba
                       <span class="h-2 w-12 rounded-full bg-muted" />
                     </div>
                     <div class="mt-3 grid grid-cols-2 gap-2">
-                      <span class="h-8 rounded-2xl" :style="{ backgroundColor: activeVisuals.primary }" />
-                      <span class="h-8 rounded-2xl" :style="{ backgroundColor: activeVisuals.accent }" />
+                      <span
+                        class="flex h-8 items-center justify-center rounded-2xl text-xs font-semibold"
+                        :style="{ backgroundColor: activeVisuals.primary, color: activeVisuals.primaryForeground }"
+                      >
+                        主按钮
+                      </span>
+                      <span
+                        class="flex h-8 items-center justify-center rounded-2xl text-xs font-semibold"
+                        :style="{ backgroundColor: activeVisuals.accent, color: activeVisuals.accentForeground }"
+                      >
+                        强调标签
+                      </span>
                     </div>
                   </div>
                   <div class="rounded-2xl border border-border/60 bg-background/82 px-3 py-4">

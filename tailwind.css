@@ -54,6 +54,7 @@
   --theme-accent-foreground: #0f172a;
   --theme-sidebar-primary: #0f172a;
   --theme-sidebar-primary-foreground: #f8fafc;
+  --theme-sidebar-accent-foreground: #0f172a;
   --surface-glow-primary: rgba(15, 118, 110, 0.13);
   --surface-glow-secondary: rgba(234, 88, 12, 0.1);
   --surface-stroke: rgba(255, 255, 255, 0.72);
@@ -89,7 +90,7 @@
   --sidebar-primary: var(--theme-sidebar-primary);
   --sidebar-primary-foreground: var(--theme-sidebar-primary-foreground);
   --sidebar-accent: color-mix(in oklab, var(--theme-primary) 6%, white);
-  --sidebar-accent-foreground: oklch(0.245 0.02 248.8);
+  --sidebar-accent-foreground: var(--theme-sidebar-accent-foreground);
   --sidebar-border: color-mix(in oklab, var(--theme-primary) 10%, oklch(0.895 0.015 248.1 / 0.8));
   --sidebar-ring: color-mix(in oklab, var(--theme-primary) 40%, white);
 }
@@ -123,7 +124,7 @@
   --sidebar-primary: var(--theme-sidebar-primary);
   --sidebar-primary-foreground: var(--theme-sidebar-primary-foreground);
   --sidebar-accent: color-mix(in oklab, var(--theme-primary) 10%, oklch(0.255 0.016 255.1));
-  --sidebar-accent-foreground: oklch(0.955 0.007 84.2);
+  --sidebar-accent-foreground: var(--theme-sidebar-accent-foreground);
   --sidebar-border: color-mix(in oklab, var(--theme-primary) 15%, oklch(0.3 0.015 255.1 / 0.85));
   --sidebar-ring: color-mix(in oklab, var(--theme-primary) 42%, oklch(0.955 0.007 84.2));
   --surface-stroke: rgba(255, 255, 255, 0.09);
