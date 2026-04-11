@@ -11,6 +11,7 @@ import AdminDateRangePicker from '@/components/admin/AdminDateRangePicker.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 
 import AdminDialogContent from '@/components/admin/AdminDialogContent.vue'
 import { Badge } from '@/components/ui/badge'
@@ -284,9 +285,7 @@ onMounted(loadList)
           <Badge variant="outline">{{ monitorOperTypeLabel(row.businessType) }}</Badge>
         </template>
         <template #cell-status="{ row }">
-          <Badge :variant="String(row.status) === '0' ? 'default' : 'destructive'">
-            {{ monitorOperStatusLabel(row.status) }}
-          </Badge>
+          <AdminStatusBadge :label="monitorOperStatusLabel(row.status)" />
         </template>
         <template #cell-costTime="{ value }">
           <span>{{ value ? `${value} ms` : '--' }}</span>

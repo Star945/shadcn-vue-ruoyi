@@ -12,6 +12,7 @@ import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import AdminTreeList from '@/components/admin/AdminTreeList.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -485,7 +486,7 @@ onMounted(loadList)
         <template #cell-status="{ row }">
           <div class="flex items-center justify-center gap-2">
             <Switch v-if="canManageRoleStatus" :model-value="String(row.status) === '0'" @update:model-value="value => toggleStatus(row, Boolean(value))" />
-            <Badge variant="outline">{{ statusText(String(row.status)) }}</Badge>
+            <AdminStatusBadge :label="statusText(String(row.status))" />
           </div>
         </template>
       </AdminDataTable>

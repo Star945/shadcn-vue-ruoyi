@@ -12,6 +12,7 @@ import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminRichTextEditor from '@/components/admin/AdminRichTextEditor.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -307,7 +308,7 @@ onMounted(loadList)
           <Badge variant="outline">{{ noticeTypeText(String(row.noticeType ?? '1')) }}</Badge>
         </template>
         <template #cell-status="{ row }">
-          <Badge variant="outline">{{ statusText(String(row.status ?? '0')) }}</Badge>
+          <AdminStatusBadge :label="statusText(String(row.status ?? '0'))" />
         </template>
       </AdminDataTable>
     </AdminSectionCard>

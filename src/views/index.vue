@@ -1,6 +1,7 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
+import { Activity, ArrowUpRight, BellRing, Clock3, Database, RefreshCw, Server, ShieldAlert, Users } from 'lucide-vue-next'
 
 import type { AdminTableColumn } from '@/components/admin/data-table'
 import type { NavigationItem } from '@/stores/navigation'
@@ -8,15 +9,15 @@ import type { NavigationItem } from '@/stores/navigation'
 import { list as listLogininfor } from '@/api/monitor/logininfor'
 import { list as listOnline } from '@/api/monitor/online'
 import { list as listOperlog } from '@/api/monitor/operlog'
-import { getServer } from '@/api/monitor/server'
 import { listJob } from '@/api/monitor/job'
+import { getServer } from '@/api/monitor/server'
 import { listNoticeTop } from '@/api/system/notice'
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import DashboardChart from '@/components/app/DashboardChart.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { resolveIcon } from '@/lib/icons'
 import { monitorOperStatusLabel, monitorResultLabel } from '@/lib/monitor'
@@ -33,73 +34,54 @@ interface NoticeItem {
 const copy = {
   eyebrow: '工作台',
   title: '工作台',
-
-  lastUpdated: '最后刷新',
+  summary: '把入口、运行态势和最近动态压在一屏里，减少切换成本。',
+  lastUpdated: '最近同步',
   refresh: '刷新看板',
   enterSystem: '进入系统',
-  viewMonitor: '监控',
+  openMonitor: '监控中心',
   partialLoadFailed: '部分内容加载失败',
   partialLoadSuffix: '其余内容已显示。',
   refreshSuccess: '工作台已刷新',
   separator: '、',
   metricOnline: '在线会话',
-  metricOnlineDetail: '在线账号 ',
-  metricOnlineBadge: '实时',
-  metricOnlineLink: '会话',
   metricJob: '定时任务',
-  metricJobDetailPrefix: '正常 ',
-  metricJobDetailSuffix: '停用 ',
-  metricJobLink: '任务',
   metricNotice: '未读公告',
-  metricNoticeDetail: '通知中心 ',
-  metricNoticeLink: '公告',
-  metricServer: 'CPU 使用率',
-  metricServerDetail: '内存使用率 ',
-  metricServerLink: '监控',
-  metricStableBadge: '稳定',
-  metricAttentionBadge: '关注',
-  metricEmptyBadge: '已接通',
+  metricServer: 'CPU 负载',
+  metricRealtime: '实时',
+  metricStable: '稳定',
+  metricAttention: '关注',
+  metricConnected: '已接通',
+  trendTitle: '运行态势',
+  trendDescription: '把近一小时变化和关键资源脉冲放在一起。',
   quickLinksTitle: '快捷入口',
   quickLinksDescription: '常用入口',
-  quickLinkFallback: '立即进入。',
-  quickUser: '用户与账号。',
-  quickRole: '角色与授权。',
-  quickMenu: '菜单与导航。',
-  quickJob: '任务运行与记录。',
-  quickServer: '服务与资源状态。',
-  quickGen: '生成配置与代码。',
   quickOpen: '进入',
-  noticeBoardTitle: '通知公告',
-  noticeBoardDescription: '最新公告',
+  noticeBoardTitle: '最新公告',
+  noticeBoardDescription: '通知与提醒',
   noticeBoardAction: '公告管理',
   noticeLoading: '正在加载公告...',
-  noticeEmpty: '暂无公告数据',
+  noticeEmpty: '暂无公告',
   noticeUnread: '未读',
   noticeTypeNotice: '通知',
   noticeTypeBulletin: '公告',
-  runtimeTitle: '运行概览',
-  runtimeDescription: '资源概览',
-  serverHost: '服务器名称',
-  serverOs: '操作系统',
-  serverCpu: 'CPU',
-  serverCpuCore: '核',
-  serverMemory: '系统内存',
-  serverJvm: 'JVM',
-  serverRisk: '风险提示',
-  loginFailedShort: '登录失败 ',
-  operExceptionShort: '异常操作 ',
+  runtimeHost: '主机',
+  runtimeOs: '系统',
+  runtimeProject: '项目目录',
+  runtimeRisk: '风险提示',
+  pulseCpu: 'CPU 负载',
+  pulseMemory: '系统内存',
+  pulseJvm: 'JVM 内存',
+  pulseRisk: '风险线索',
+  riskLogin: '登录失败',
+  riskOper: '异常操作',
   loginActivityTitle: '最近登录动态',
   loginActivityDescription: '最近登录',
   operActivityTitle: '最近操作日志',
   operActivityDescription: '最近操作',
-  statusSuccess: '成功',
-  statusFailure: '失败',
-  statusNormal: '正常',
-  statusException: '异常',
-  loginEmpty: '暂无登录动态',
-  operEmpty: '暂无操作日志',
   loginLoading: '正在加载登录动态...',
   operLoading: '正在加载操作日志...',
+  loginEmpty: '暂无登录动态',
+  operEmpty: '暂无操作日志',
   fieldUserName: '用户名称',
   fieldIpaddr: '登录地址',
   fieldLoginStatus: '登录状态',
@@ -134,12 +116,12 @@ const preferredQuickLinkPaths = [
 ]
 
 const quickLinkDescriptions: Record<string, string> = {
-  '/system/user': copy.quickUser,
-  '/system/role': copy.quickRole,
-  '/system/menu': copy.quickMenu,
-  '/monitor/job': copy.quickJob,
-  '/monitor/server': copy.quickServer,
-  '/tool/gen': copy.quickGen,
+  '/system/user': '用户与账号',
+  '/system/role': '角色与授权',
+  '/system/menu': '菜单与导航',
+  '/monitor/job': '任务与执行记录',
+  '/monitor/server': '服务与资源状态',
+  '/tool/gen': '代码生成与预览',
 }
 
 const navigation = useNavigationStore()
@@ -155,7 +137,6 @@ const operRows = ref<Record<string, any>[]>([])
 const server = ref<Record<string, any>>({})
 const lastUpdated = ref('')
 
-// 负载趋势演示数据
 const loadTrendData = ref([45, 52, 48, 61, 55, 68, 72, 65, 59, 74, 82, 78])
 const loadTrendLabels = ref(['10:00', '10:10', '10:20', '10:30', '10:40', '10:50', '11:00', '11:10', '11:20', '11:30', '11:40', '11:50'])
 
@@ -192,12 +173,12 @@ function formatUnit(value: unknown, unit: string) {
   return Number.isFinite(numeric) ? `${numeric}${unit}` : '--'
 }
 
-function noticeTypeText(value: string) {
-  return value === '1' ? copy.noticeTypeNotice : copy.noticeTypeBulletin
-}
-
-function noticeTypeVariant(value: string) {
-  return value === '1' ? 'secondary' : 'outline'
+function clampPercent(value: unknown, fallback = 0) {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) {
+    return fallback
+  }
+  return Math.max(0, Math.min(100, numeric))
 }
 
 function metricVariant(value: string) {
@@ -210,15 +191,33 @@ function metricVariant(value: string) {
   return 'outline'
 }
 
+function progressClass(tone: 'default' | 'secondary' | 'destructive') {
+  if (tone === 'destructive') {
+    return 'bg-destructive'
+  }
+  if (tone === 'secondary') {
+    return 'bg-emerald-500'
+  }
+  return 'bg-primary'
+}
+
+function noticeTypeText(value: string) {
+  return value === '1' ? copy.noticeTypeNotice : copy.noticeTypeBulletin
+}
+
+function noticeTypeVariant(value: string) {
+  return value === '1' ? 'secondary' : 'outline'
+}
+
 function formatTimeStamp() {
   return new Date().toLocaleString('zh-CN', { hour12: false })
 }
 
 function quickLinkDescription(path: string) {
-  return quickLinkDescriptions[path] ?? copy.quickLinkFallback
+  return quickLinkDescriptions[path] ?? '立即进入'
 }
 
-const recentNotices = computed(() => notices.value.slice(0, 5))
+const recentNotices = computed(() => notices.value.slice(0, 4))
 
 const quickLinks = computed(() => {
   const allItems = navigation.allItems.filter(item => item.path !== '/index')
@@ -251,52 +250,100 @@ const metricCards = computed(() => {
       key: 'online',
       label: copy.metricOnline,
       value: formatCount(onlineTotal.value),
-      detail: `${copy.metricOnlineDetail}${formatCount(onlineTotal.value)}`,
-      badge: copy.metricOnlineBadge,
+      detail: `在线账号 ${formatCount(onlineTotal.value)}`,
+      badge: copy.metricRealtime,
       tone: 'outline',
       path: '/monitor/online',
-      linkText: copy.metricOnlineLink,
+      linkText: '查看会话',
+      icon: Users,
     },
     {
       key: 'job',
       label: copy.metricJob,
       value: formatCount(jobTotal.value),
-      detail: `${copy.metricJobDetailPrefix}${formatCount(jobEnabledTotal.value)} / ${copy.metricJobDetailSuffix}${formatCount(pausedJobs)}`,
-      badge: jobTotal.value ? copy.metricStableBadge : copy.metricEmptyBadge,
+      detail: `正常 ${formatCount(jobEnabledTotal.value)} · 停用 ${formatCount(pausedJobs)}`,
+      badge: jobTotal.value ? copy.metricStable : copy.metricConnected,
       tone: jobTotal.value ? 'secondary' : 'outline',
       path: '/monitor/job',
-      linkText: copy.metricJobLink,
+      linkText: '查看任务',
+      icon: Clock3,
     },
     {
       key: 'notice',
       label: copy.metricNotice,
       value: formatCount(unreadNoticeTotal.value),
-      detail: `${copy.metricNoticeDetail}${formatCount(notices.value.length)}`,
-      badge: unreadNoticeTotal.value ? copy.metricAttentionBadge : copy.metricStableBadge,
+      detail: `通知中心 ${formatCount(notices.value.length)} 条`,
+      badge: unreadNoticeTotal.value ? copy.metricAttention : copy.metricStable,
       tone: unreadNoticeTotal.value ? 'destructive' : 'outline',
       path: '/system/notice',
-      linkText: copy.metricNoticeLink,
+      linkText: '查看公告',
+      icon: BellRing,
     },
     {
       key: 'server',
       label: copy.metricServer,
       value: formatPercent(server.value.cpu?.used),
-      detail: `${copy.metricServerDetail}${memUsage}`,
-      badge: cpuUsed > 80 ? copy.metricAttentionBadge : copy.metricStableBadge,
-      tone: cpuUsed > 80 ? 'destructive' : 'outline',
+      detail: `内存 ${memUsage}`,
+      badge: cpuUsed > 80 ? copy.metricAttention : copy.metricStable,
+      tone: cpuUsed > 80 ? 'destructive' : 'secondary',
       path: '/monitor/server',
-      linkText: copy.metricServerLink,
+      linkText: '查看监控',
+      icon: Activity,
     },
   ]
 })
 
-const runtimeItems = computed(() => [
-  { label: copy.serverHost, value: server.value.sys?.computerName || '--' },
-  { label: copy.serverOs, value: server.value.sys?.osName || '--' },
-  { label: copy.serverCpu, value: `${formatPercent(server.value.cpu?.used)} / ${copy.serverCpuCore}${formatCount(server.value.cpu?.cpuNum)}` },
-  { label: copy.serverMemory, value: `${formatPercent(server.value.mem?.usage)} / ${formatUnit(server.value.mem?.used, 'G')} / ${formatUnit(server.value.mem?.total, 'G')}` },
-  { label: copy.serverJvm, value: `${formatPercent(server.value.jvm?.usage)} / ${formatUnit(server.value.jvm?.used, 'M')} / ${formatUnit(server.value.jvm?.total, 'M')}` },
-  { label: copy.serverRisk, value: `${copy.loginFailedShort}${formatCount(loginFailedCount.value)} / ${copy.operExceptionShort}${formatCount(operExceptionCount.value)}` },
+const resourcePulseItems = computed(() => {
+  const cpuUsed = clampPercent(server.value.cpu?.used)
+  const memUsage = clampPercent(server.value.mem?.usage)
+  const jvmUsage = clampPercent(server.value.jvm?.usage)
+  const riskCount = loginFailedCount.value + operExceptionCount.value
+
+  return [
+    {
+      key: 'cpu',
+      label: copy.pulseCpu,
+      value: formatPercent(server.value.cpu?.used),
+      hint: `${formatCount(server.value.cpu?.cpuNum)} 核 / 空闲 ${formatPercent(server.value.cpu?.free)}`,
+      percent: cpuUsed,
+      tone: cpuUsed > 80 ? 'destructive' : 'secondary',
+      icon: Activity,
+    },
+    {
+      key: 'memory',
+      label: copy.pulseMemory,
+      value: formatPercent(server.value.mem?.usage),
+      hint: `${formatUnit(server.value.mem?.used, 'G')} / ${formatUnit(server.value.mem?.total, 'G')}`,
+      percent: memUsage,
+      tone: memUsage > 80 ? 'destructive' : 'default',
+      icon: Database,
+    },
+    {
+      key: 'jvm',
+      label: copy.pulseJvm,
+      value: formatPercent(server.value.jvm?.usage),
+      hint: `${formatUnit(server.value.jvm?.used, 'M')} / ${formatUnit(server.value.jvm?.total, 'M')}`,
+      percent: jvmUsage,
+      tone: jvmUsage > 80 ? 'destructive' : 'default',
+      icon: Server,
+    },
+    {
+      key: 'risk',
+      label: copy.pulseRisk,
+      value: formatCount(riskCount),
+      hint: `${copy.riskLogin} ${formatCount(loginFailedCount.value)} · ${copy.riskOper} ${formatCount(operExceptionCount.value)}`,
+      percent: clampPercent(riskCount * 12),
+      tone: riskCount ? 'destructive' : 'secondary',
+      icon: ShieldAlert,
+    },
+  ] as const
+})
+
+const runtimeHighlights = computed(() => [
+  { label: copy.runtimeHost, value: server.value.sys?.computerName || '--' },
+  { label: copy.runtimeOs, value: server.value.sys?.osName || '--' },
+  { label: copy.runtimeProject, value: server.value.sys?.userDir || '--' },
+  { label: copy.runtimeRisk, value: `${copy.riskLogin} ${formatCount(loginFailedCount.value)} · ${copy.riskOper} ${formatCount(operExceptionCount.value)}` },
 ])
 
 async function loadDashboard(silent = false) {
@@ -307,7 +354,7 @@ async function loadDashboard(silent = false) {
     { key: 'online', label: copy.metricOnline, task: listOnline() },
     { key: 'jobAll', label: copy.metricJob, task: listJob({ pageNum: 1, pageSize: 1 }) },
     { key: 'jobEnabled', label: copy.metricJob, task: listJob({ pageNum: 1, pageSize: 1, status: '0' }) },
-    { key: 'server', label: copy.runtimeTitle, task: getServer() },
+    { key: 'server', label: copy.trendTitle, task: getServer() },
     { key: 'login', label: copy.loginActivityTitle, task: listLogininfor({ pageNum: 1, pageSize: 6 }) },
     { key: 'oper', label: copy.operActivityTitle, task: listOperlog({ pageNum: 1, pageSize: 6 }) },
   ] as const
@@ -393,136 +440,171 @@ onMounted(() => {
       <div>
         <p class="admin-kicker">{{ copy.eyebrow }}</p>
         <h1 class="mt-3 text-3xl font-semibold tracking-tight sm:text-[2rem]">{{ copy.title }}</h1>
-        <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          把高频入口、实时状态和最近动态收在同一屏，减少往返切换。
-        </p>
+        <p class="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{{ copy.summary }}</p>
       </div>
-      <div class="admin-shell-panel-soft inline-flex w-full items-center gap-3 rounded-[var(--radius-xl)] px-4 py-3 text-sm text-muted-foreground lg:w-auto">
-        <span class="font-medium text-foreground">{{ copy.lastUpdated }}</span>
-        <span>{{ lastUpdated || '--' }}</span>
+      <div class="inline-flex w-full items-center justify-between gap-4 rounded-[26px] border border-border/60 bg-background/80 px-4 py-3 text-sm shadow-sm backdrop-blur lg:w-auto">
+        <div>
+          <p class="text-xs uppercase tracking-[0.18em] text-muted-foreground">{{ copy.lastUpdated }}</p>
+          <p class="mt-1 font-medium text-foreground">{{ lastUpdated || '--' }}</p>
+        </div>
+        <Button variant="outline" size="sm" class="gap-1.5" :disabled="loading" @click="loadDashboard()">
+          <RefreshCw class="size-3.5" />
+          {{ copy.refresh }}
+        </Button>
       </div>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <Card
-        v-for="(metric, index) in metricCards"
+    <div class="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+      <div
+        v-for="metric in metricCards"
         :key="metric.key"
-        class="group admin-shell-panel-strong animate-in fade-in slide-in-from-bottom-2 transition-all duration-300 hover:-translate-y-1"
-        :style="{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }"
+        class="admin-shell-panel-strong rounded-[28px] px-5 py-5"
       >
-        <CardHeader class="pb-2">
-          <div class="flex items-center justify-between gap-3">
-            <CardTitle class="text-sm font-medium text-muted-foreground">{{ metric.label }}</CardTitle>
-            <Badge :variant="metricVariant(metric.tone)">{{ metric.badge }}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div v-if="loading && metric.value === '--'" class="space-y-3">
-            <div>
-              <Skeleton class="h-9 w-24" />
-              <Skeleton class="mt-2 h-5 w-48" />
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex min-w-0 items-start gap-3">
+            <div class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <component :is="metric.icon" class="size-4.5" />
             </div>
-            <div>
-              <Skeleton class="h-8 w-16" />
+            <div class="min-w-0">
+              <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground">{{ metric.label }}</p>
+              <p class="mt-2 text-[1.75rem] font-semibold tracking-tight">{{ metric.value }}</p>
             </div>
           </div>
-          <div v-else class="space-y-3">
-            <div>
-              <p class="text-[2rem] font-semibold tracking-tight">{{ metric.value }}</p>
-              <p class="mt-2 text-sm text-muted-foreground">{{ metric.detail }}</p>
-            </div>
-            <div>
-              <Button as-child variant="link" size="sm" class="-ml-1 px-1 text-xs font-semibold uppercase tracking-[0.14em] no-underline hover:no-underline">
-                <RouterLink :to="metric.path">{{ metric.linkText }}</RouterLink>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          <Badge :variant="metricVariant(metric.tone)">{{ metric.badge }}</Badge>
+        </div>
+        <p class="mt-3 text-sm text-muted-foreground">{{ metric.detail }}</p>
+        <Button as-child variant="link" size="sm" class="-ml-1 mt-2 h-auto gap-1 px-1 text-xs font-semibold text-primary no-underline hover:no-underline">
+          <RouterLink :to="metric.path">
+            {{ metric.linkText }}
+            <ArrowUpRight class="size-3.5" />
+          </RouterLink>
+        </Button>
+      </div>
     </div>
 
-    <AdminSectionCard title="实时负载趋势" description="近一小时">
-      <template #headerExtra>
-        <Button variant="outline" size="sm" :disabled="loading" @click="loadDashboard()">{{ copy.refresh }}</Button>
-      </template>
-      <div v-if="loading && !server.cpu" class="h-[240px] flex items-center justify-center rounded-3xl border border-dashed bg-muted/10">
-        <Skeleton class="mx-6 h-[200px] w-full" />
+    <AdminSectionCard
+      :title="copy.trendTitle"
+      :description="copy.trendDescription"
+      card-class="overflow-hidden"
+      content-class="space-y-6"
+    >
+      <div v-if="loading && !server.cpu" class="space-y-4">
+        <Skeleton class="h-[280px] w-full rounded-[28px]" />
+        <div class="grid gap-3 xl:grid-cols-4">
+          <Skeleton v-for="index in 4" :key="index" class="h-28 w-full rounded-[24px]" />
+        </div>
       </div>
-      <DashboardChart v-else :data="loadTrendData" :labels="loadTrendLabels" />
+      <div v-else class="space-y-6">
+        <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div class="rounded-[28px] border border-border/60 bg-muted/12 p-4">
+            <DashboardChart :data="loadTrendData" :labels="loadTrendLabels" height="288px" />
+          </div>
+          <div class="grid gap-3">
+            <div
+              v-for="item in resourcePulseItems"
+              :key="item.key"
+              class="rounded-[24px] border border-border/60 bg-background/85 px-4 py-4 shadow-sm"
+            >
+              <div class="flex items-start gap-3">
+                <div class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <component :is="item.icon" class="size-4" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-sm font-medium">{{ item.label }}</p>
+                    <span class="text-sm font-semibold">{{ item.value }}</span>
+                  </div>
+                  <p class="mt-1 text-xs leading-5 text-muted-foreground">{{ item.hint }}</p>
+                  <div class="mt-3 h-2 rounded-full bg-muted/40">
+                    <div
+                      class="h-2 rounded-full transition-all"
+                      :class="progressClass(item.tone)"
+                      :style="{ width: `${item.percent}%` }"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div
+            v-for="item in runtimeHighlights"
+            :key="item.label"
+            class="rounded-[24px] border border-border/60 bg-muted/12 px-4 py-4"
+          >
+            <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground">{{ item.label }}</p>
+            <p class="mt-2 break-all text-sm font-medium leading-6">{{ item.value }}</p>
+          </div>
+        </div>
+      </div>
     </AdminSectionCard>
 
-    <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+    <div class="grid gap-6 2xl:grid-cols-2">
+      <AdminSectionCard :title="copy.quickLinksTitle" :description="copy.quickLinksDescription" card-class="overflow-hidden">
+        <template #headerExtra>
+          <Button as-child size="sm" class="gap-1.5">
+            <RouterLink to="/system/user">{{ copy.enterSystem }}</RouterLink>
+          </Button>
+        </template>
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <RouterLink
+            v-for="item in quickLinks"
+            :key="item.path"
+            :to="item.path"
+            class="rounded-[24px] border border-border/60 bg-background/85 px-4 py-4 shadow-sm transition hover:-translate-y-[1px] hover:border-primary/25"
+          >
+            <div class="flex items-start gap-3">
+              <div class="mt-0.5 flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <component :is="resolveIcon(item.icon)" class="size-4" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <p class="truncate text-sm font-semibold">{{ item.title }}</p>
+                  <ArrowUpRight class="size-3.5 shrink-0 text-muted-foreground" />
+                </div>
+                <p class="mt-1 text-xs leading-5 text-muted-foreground">{{ quickLinkDescription(item.path) }}</p>
+              </div>
+            </div>
+          </RouterLink>
+        </div>
+      </AdminSectionCard>
+
       <AdminSectionCard :title="copy.noticeBoardTitle" :description="copy.noticeBoardDescription">
         <template #headerExtra>
-          <Button as-child variant="outline" size="sm"><RouterLink to="/system/notice">{{ copy.noticeBoardAction }}</RouterLink></Button>
+          <Button as-child variant="outline" size="sm">
+            <RouterLink to="/system/notice">{{ copy.noticeBoardAction }}</RouterLink>
+          </Button>
         </template>
-
         <div v-if="loading && !recentNotices.length" class="text-sm text-muted-foreground">{{ copy.noticeLoading }}</div>
         <div v-else-if="!recentNotices.length" class="text-sm text-muted-foreground">{{ copy.noticeEmpty }}</div>
         <div v-else class="grid gap-3">
           <div
             v-for="item in recentNotices"
             :key="item.noticeId"
-            class="admin-shell-panel-soft rounded-3xl px-4 py-4"
-            :class="item.isRead ? 'border-border/60 bg-muted/15' : 'border-primary/20 bg-primary/5'"
+            class="rounded-[24px] border px-4 py-4"
+            :class="item.isRead ? 'border-border/60 bg-muted/10' : 'border-primary/20 bg-primary/5'"
           >
-            <div class="flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+              <div class="mt-0.5 flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <BellRing class="size-4" />
+              </div>
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2">
                   <Badge :variant="noticeTypeVariant(item.noticeType)">{{ noticeTypeText(item.noticeType) }}</Badge>
                   <span v-if="!item.isRead" class="text-xs font-medium text-primary">{{ copy.noticeUnread }}</span>
                 </div>
-                <p class="mt-3 truncate text-sm font-semibold">{{ item.noticeTitle }}</p>
+                <p class="mt-3 line-clamp-2 text-sm font-semibold leading-6">{{ item.noticeTitle }}</p>
                 <p class="mt-1 text-xs text-muted-foreground">{{ item.createTime || '--' }}</p>
               </div>
             </div>
           </div>
         </div>
       </AdminSectionCard>
-
-      <div class="grid gap-6">
-        <AdminSectionCard :title="copy.quickLinksTitle" :description="copy.quickLinksDescription">
-          <template #headerExtra>
-            <Button as-child size="sm"><RouterLink to="/system/user">{{ copy.enterSystem }}</RouterLink></Button>
-          </template>
-          <div class="grid gap-3">
-            <RouterLink
-              v-for="item in quickLinks"
-              :key="item.path"
-              :to="item.path"
-              class="admin-shell-panel-soft rounded-3xl px-4 py-4 transition hover:-translate-y-[1px] hover:border-border"
-            >
-              <div class="flex items-start gap-3">
-                <div class="mt-0.5 flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <component :is="resolveIcon(item.icon)" class="size-4" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center justify-between gap-3">
-                    <p class="text-sm font-semibold">{{ item.title }}</p>
-                    <Badge variant="outline">{{ copy.quickOpen }}</Badge>
-                  </div>
-                  <p class="mt-1 text-sm leading-6 text-muted-foreground">{{ quickLinkDescription(item.path) }}</p>
-                </div>
-              </div>
-            </RouterLink>
-          </div>
-        </AdminSectionCard>
-
-        <AdminSectionCard :title="copy.runtimeTitle" :description="copy.runtimeDescription">
-          <template #headerExtra>
-            <Button as-child variant="outline" size="sm"><RouterLink to="/monitor/server">{{ copy.viewMonitor }}</RouterLink></Button>
-          </template>
-          <div class="grid gap-3">
-            <div v-for="item in runtimeItems" :key="item.label" class="admin-shell-panel-soft rounded-3xl px-4 py-4">
-              <p class="admin-kicker tracking-[0.18em]">{{ item.label }}</p>
-              <p class="mt-2 text-sm font-semibold leading-6">{{ item.value }}</p>
-            </div>
-          </div>
-        </AdminSectionCard>
-      </div>
     </div>
 
-    <div class="grid gap-6 xl:grid-cols-2">
+    <div class="grid gap-6 2xl:grid-cols-2">
       <AdminSectionCard :title="copy.loginActivityTitle" :description="copy.loginActivityDescription">
         <AdminDataTable
           :columns="loginColumns"
@@ -536,9 +618,7 @@ onMounted(() => {
             <span class="font-medium">{{ value || '--' }}</span>
           </template>
           <template #cell-status="{ row }">
-            <Badge :variant="String(row.status) === '0' ? 'default' : 'destructive'">
-              {{ monitorResultLabel(row.status) }}
-            </Badge>
+            <AdminStatusBadge :label="monitorResultLabel(row.status)" />
           </template>
         </AdminDataTable>
       </AdminSectionCard>
@@ -556,38 +636,10 @@ onMounted(() => {
             <span class="font-medium">{{ value || '--' }}</span>
           </template>
           <template #cell-status="{ row }">
-            <Badge :variant="String(row.status) === '0' ? 'default' : 'destructive'">
-              {{ monitorOperStatusLabel(row.status) }}
-            </Badge>
+            <AdminStatusBadge :label="monitorOperStatusLabel(row.status)" />
           </template>
         </AdminDataTable>
       </AdminSectionCard>
     </div>
   </div>
 </template>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

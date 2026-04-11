@@ -10,6 +10,7 @@ import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 
 import AdminDialogContent from '@/components/admin/AdminDialogContent.vue'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -207,7 +208,7 @@ watch(() => props.open, async (open) => {
             <span class="font-medium">{{ value }}</span>
           </template>
           <template #cell-status="{ row }">
-            <Badge :variant="String(row.status) === '0' ? 'outline' : 'destructive'">{{ statusText(row.status) }}</Badge>
+            <AdminStatusBadge :label="statusText(row.status)" />
           </template>
         </AdminDataTable>
       </AdminSectionCard>

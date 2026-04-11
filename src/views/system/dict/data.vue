@@ -12,7 +12,7 @@ import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
-import { Badge } from '@/components/ui/badge'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -348,7 +348,7 @@ onMounted(async () => {
           <span class="font-medium">{{ value }}</span>
         </template>
         <template #cell-status="{ row }">
-          <Badge variant="outline">{{ statusText(String(row.status ?? '0')) }}</Badge>
+          <AdminStatusBadge :label="statusText(String(row.status ?? '0'))" />
         </template>
       </AdminDataTable>
     </AdminSectionCard>

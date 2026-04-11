@@ -9,7 +9,7 @@ import type { AdminTableColumn } from '@/components/admin/data-table'
 import { getAuthRole, updateAuthRole } from '@/api/system/user'
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
-import { Badge } from '@/components/ui/badge'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAccess } from '@/lib/access'
@@ -217,7 +217,7 @@ onMounted(loadRoles)
           <span class="font-medium">{{ value }}</span>
         </template>
         <template #cell-status="{ row }">
-          <Badge :variant="String(row.status) === '0' ? 'outline' : 'destructive'">{{ statusText(row.status) }}</Badge>
+          <AdminStatusBadge :label="statusText(row.status)" />
         </template>
       </AdminDataTable>
     </AdminSectionCard>

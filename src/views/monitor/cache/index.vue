@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { toast } from 'vue-sonner'
-import { Copy, Eye, RefreshCw, Trash2 } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, Copy, Database, Eye, KeyRound, RefreshCw, Server, Trash2 } from 'lucide-vue-next'
 
 import type { AdminTableActionItem, AdminTableColumn } from '@/components/admin/data-table'
 
@@ -40,47 +40,99 @@ const access = useAccess()
 const cachePerms = permissionKeys.monitor.cache
 
 const loading = ref(false)
+const keyLoading = ref(false)
+const valueLoading = ref(false)
+const directoryPreviewSize = 10
 const cache = ref<Record<string, any>>({})
 const cacheNameRows = ref<CacheNameRow[]>([])
 const cacheKeyRows = ref<CacheKeyRow[]>([])
 const selectedCacheName = ref('')
 const selectedCacheKey = ref('')
 const selectedCacheValue = ref<any>(null)
-const keyLoading = ref(false)
-const valueLoading = ref(false)
+const nameDirectoryExpanded = ref(false)
+const keyDirectoryExpanded = ref(false)
 
-const selectedCacheNameLabel = computed(() => stripCacheName(selectedCacheName.value))
-const selectedCacheKeyLabel = computed(() => stripCacheKey(selectedCacheKey.value, selectedCacheName.value))
-const commandStats = computed(() => Array.isArray(cache.value.commandStats) ? cache.value.commandStats : [])
-const selectedValueText = computed(() => prettyJson(selectedCacheValue.value))
-const hasCacheScopedPermissions = computed(() => access.hasAnyPrefix('monitor:cache:'))
-const canManageCache = computed(() => !hasCacheScopedPermissions.value || access.can(cachePerms.manage))
-const cacheReadonlyNotice = computed(() => hasCacheScopedPermissions.value && !canManageCache.value
-  ? '仅可查看。'
-  : '')
+function pickVisibleRows<T>(rows: T[], expanded: boolean, isSelected: (row: T) => boolean) {
+  if (expanded || rows.length <= directoryPreviewSize) {
+    return rows
+  }
+
+  const previewRows = rows.slice(0, directoryPreviewSize)
+  if (previewRows.some(isSelected)) {
+    return previewRows
+  }
+
+  const selectedRow = rows.find(isSelected)
+  return selectedRow
+    ? [...previewRows.slice(0, Math.max(directoryPreviewSize - 1, 0)), selectedRow]
+    : previewRows
+}
+
 const isCacheListPage = computed(() => route.path === '/monitor/cacheList')
 const pageEyebrow = computed(() => isCacheListPage.value ? '系统监控 / 缓存列表' : '系统监控 / 缓存监控')
 const pageTitle = computed(() => isCacheListPage.value ? '缓存列表' : '缓存监控')
 const refreshButtonText = computed(() => isCacheListPage.value ? '刷新列表' : '刷新监控')
+
+const hasCacheScopedPermissions = computed(() => access.hasAnyPrefix('monitor:cache:'))
+const canManageCache = computed(() => !hasCacheScopedPermissions.value || access.can(cachePerms.manage))
+const cacheReadonlyNotice = computed(() => hasCacheScopedPermissions.value && !canManageCache.value
+  ? '当前账号仅可查看缓存内容，清理操作已隐藏。'
+  : '')
+
+const selectedCacheNameLabel = computed(() => stripCacheName(selectedCacheName.value))
+const selectedCacheKeyLabel = computed(() => stripCacheKey(selectedCacheKey.value, selectedCacheName.value))
 const cacheNameCount = computed(() => cacheNameRows.value.length)
 const cacheKeyCount = computed(() => cacheKeyRows.value.length)
+const canToggleNameDirectory = computed(() => cacheNameRows.value.length > directoryPreviewSize)
+const canToggleKeyDirectory = computed(() => cacheKeyRows.value.length > directoryPreviewSize)
+const visibleCacheNameRows = computed(() => pickVisibleRows(cacheNameRows.value, nameDirectoryExpanded.value, row => row.rawName === selectedCacheName.value))
+const visibleCacheKeyRows = computed(() => pickVisibleRows(cacheKeyRows.value, keyDirectoryExpanded.value, row => row.rawKey === selectedCacheKey.value))
+const commandStats = computed(() => Array.isArray(cache.value.commandStats) ? cache.value.commandStats : [])
+const selectedValueText = computed(() => prettyJson(selectedCacheValue.value))
 const canCopyValue = computed(() => {
   const text = selectedValueText.value.trim()
   return Boolean(text && text !== '--')
 })
+
+const topCardTitle = computed(() => isCacheListPage.value ? '缓存目录' : '缓存工作台')
+const topCardDescription = computed(() => isCacheListPage.value ? '从目录里查看缓存名称、键和值。' : '按名称、键和值的顺序浏览缓存内容。')
+const nameCardTitle = computed(() => isCacheListPage.value ? '缓存名称目录' : '步骤 1 · 选择名称')
+const keyCardTitle = computed(() => isCacheListPage.value ? '缓存键目录' : '步骤 2 · 选择键')
+const valueCardTitle = computed(() => isCacheListPage.value ? '缓存值预览' : '步骤 3 · 查看值')
 const valueCardDescription = computed(() => selectedCacheName.value && selectedCacheKey.value
   ? `${selectedCacheNameLabel.value} / ${selectedCacheKeyLabel.value}`
-  : '从左侧选择缓存键查看内容。')
+  : '从左侧选择缓存名称和键后，在这里查看完整内容。')
 
-const cacheNameRowActions: AdminTableActionItem[] = [
-  { label: '查看', icon: Eye, onClick: (row) => loadCacheKeys(row.rawName) },
-  { label: '清理', icon: Trash2, tone: 'danger', visible: () => canManageCache.value, onClick: (row) => handleClearName(row.rawName) },
-]
+const overviewCards = computed(() => {
+  const info = cache.value.info ?? {}
+  return [
+    {
+      label: '缓存名称',
+      value: String(cacheNameCount.value),
+      hint: selectedCacheName.value ? `当前：${selectedCacheNameLabel.value}` : '先选择一个缓存名称。',
+      icon: Database,
+    },
+    {
+      label: '缓存键',
+      value: String(cacheKeyCount.value),
+      hint: selectedCacheKey.value ? `当前：${selectedCacheKeyLabel.value}` : '再选择一个缓存键。',
+      icon: KeyRound,
+    },
+    {
+      label: '客户端数',
+      value: String(info.connected_clients ?? '--'),
+      hint: info.redis_mode === 'standalone' ? '单机模式' : String(info.redis_mode ?? '--'),
+      icon: Server,
+    },
+    {
+      label: '使用内存',
+      value: String(info.used_memory_human ?? '--'),
+      hint: `Key 数量：${cache.value.dbSize ?? cache.value.dbsize ?? '--'}`,
+      icon: Database,
+    },
+  ]
+})
 
-const cacheKeyRowActions: AdminTableActionItem[] = [
-  { label: '查看', icon: Eye, onClick: (row) => loadCacheValue(selectedCacheName.value, row.rawKey) },
-  { label: '清理', icon: Trash2, tone: 'danger', visible: () => canManageCache.value, onClick: (row) => handleClearKey(row.rawKey) },
-]
 const basicItems = computed(() => {
   const info = cache.value.info ?? {}
   return [
@@ -98,6 +150,16 @@ const basicItems = computed(() => {
     { label: '网络出口', value: info.instantaneous_output_kbps ? `${info.instantaneous_output_kbps} kps` : '--' },
   ]
 })
+
+const cacheNameRowActions: AdminTableActionItem[] = [
+  { label: '查看', icon: Eye, onClick: row => loadCacheKeys(row.rawName) },
+  { label: '清理', icon: Trash2, tone: 'danger', visible: () => canManageCache.value, onClick: row => handleClearName(row.rawName) },
+]
+
+const cacheKeyRowActions: AdminTableActionItem[] = [
+  { label: '查看', icon: Eye, onClick: row => loadCacheValue(selectedCacheName.value, row.rawKey) },
+  { label: '清理', icon: Trash2, tone: 'danger', visible: () => canManageCache.value, onClick: row => handleClearKey(row.rawKey) },
+]
 
 function stripCacheName(cacheName: string) {
   return cacheName.replace(/:$/, '')
@@ -183,10 +245,10 @@ async function handleCopyValue() {
     else {
       fallbackCopyText(text)
     }
-    toast.success('已复制')
+    toast.success('内容已复制')
   }
   catch (error) {
-    toast.error('复制缓存值失败', { description: error instanceof Error ? error.message : '请稍后重试。' })
+    toast.error('复制失败', { description: error instanceof Error ? error.message : '请稍后重试。' })
   }
 }
 
@@ -216,7 +278,7 @@ async function loadCacheKeys(cacheName: string, preserveKey = false) {
     cacheKeyRows.value = []
     selectedCacheKey.value = ''
     selectedCacheValue.value = null
-    toast.error('加载失败', { description: error instanceof Error ? error.message : '请稍后重试。' })
+    toast.error('加载缓存键失败', { description: error instanceof Error ? error.message : '请稍后重试。' })
   }
   finally {
     keyLoading.value = false
@@ -233,7 +295,7 @@ async function loadCacheValue(cacheName: string, cacheKey: string) {
   }
   catch (error) {
     selectedCacheValue.value = null
-    toast.error('缓存值加载失败', { description: error instanceof Error ? error.message : '请稍后重试。' })
+    toast.error('加载缓存值失败', { description: error instanceof Error ? error.message : '请稍后重试。' })
   }
   finally {
     valueLoading.value = false
@@ -268,7 +330,7 @@ async function refreshCacheState(preserveSelection = true) {
     }
   }
   catch (error) {
-    toast.error('加载失败', { description: error instanceof Error ? error.message : '请稍后重试。' })
+    toast.error('加载缓存失败', { description: error instanceof Error ? error.message : '请稍后重试。' })
   }
   finally {
     loading.value = false
@@ -329,183 +391,241 @@ onMounted(() => refreshCacheState(false))
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-muted-foreground">{{ pageEyebrow }}</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight">{{ pageTitle }}</h1>
-      </div>
+    <div>
+      <p class="admin-kicker">{{ pageEyebrow }}</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight">{{ pageTitle }}</h1>
     </div>
 
-    <div v-if="cacheReadonlyNotice" class="rounded-3xl border border-amber-300/60 bg-amber-50/80 px-5 py-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+    <div
+      v-if="cacheReadonlyNotice"
+      class="rounded-3xl border border-amber-300/60 bg-amber-50/80 px-5 py-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100"
+    >
       {{ cacheReadonlyNotice }}
     </div>
 
-    <AdminSectionCard title="Redis 概览" description="当前状态。">
+    <AdminSectionCard :title="topCardTitle" :description="topCardDescription">
       <template #headerExtra>
-        <Button variant="outline" size="sm" class="gap-1" @click="refreshCacheState(true)"><RefreshCw class="size-3.5" />{{ refreshButtonText }}</Button>
+        <Button variant="outline" size="sm" class="gap-1.5" @click="refreshCacheState(true)">
+          <RefreshCw class="size-3.5" />
+          {{ refreshButtonText }}
+        </Button>
         <Button v-if="canManageCache" variant="outline" size="sm" @click="handleClearAll">清理全部</Button>
       </template>
+
       <div v-if="loading" class="text-sm text-muted-foreground">正在加载...</div>
-      <div v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div v-for="item in basicItems" :key="item.label" class="rounded-2xl border border-border/60 bg-muted/20 px-4 py-4">
-          <p class="text-sm text-muted-foreground">{{ item.label }}</p>
-          <p class="mt-2 break-all text-sm font-medium">{{ item.value }}</p>
-        </div>
-      </div>
-    </AdminSectionCard>
-
-    <AdminSectionCard v-if="commandStats.length" title="命令统计" description="命中统计。">
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div v-for="item in commandStats" :key="item.name" class="rounded-2xl border border-border/60 bg-muted/20 px-4 py-4">
-          <p class="text-sm text-muted-foreground">{{ item.name }}</p>
-          <p class="mt-2 break-all text-base font-semibold">{{ item.value }}</p>
-        </div>
-      </div>
-    </AdminSectionCard>
-
-    <div class="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[300px_minmax(0,1fr)_minmax(0,1.1fr)]">
-      <AdminSectionCard
-        title="缓存名称"
-        :description="selectedCacheName ? `已选：${selectedCacheNameLabel}` : '选择缓存名称。'"
-      >
-        <template #headerExtra>
-          <Badge variant="outline">共 {{ cacheNameCount }} 项</Badge>
-        </template>
-        <div v-if="loading && !cacheNameRows.length" class="rounded-3xl border border-border/60 bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
-          正在加载...
-        </div>
-        <div v-else-if="cacheNameRows.length" class="space-y-3 md:hidden">
-          <div v-for="row in cacheNameRows" :key="row.rawName" class="rounded-3xl border border-border/60 bg-muted/10 p-4">
-            <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <p class="truncate text-sm font-semibold">{{ row.name }}</p>
-                <Badge v-if="row.rawName === selectedCacheName" variant="outline">当前</Badge>
+      <div v-else class="space-y-5">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div
+            v-for="item in overviewCards"
+            :key="item.label"
+            class="rounded-[26px] border border-border/60 bg-background/85 px-5 py-5 shadow-sm"
+          >
+            <div class="flex items-start gap-3">
+              <div class="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <component :is="item.icon" class="size-4.5" />
               </div>
-              <p class="mt-1 break-all text-xs text-muted-foreground">{{ row.remark }}</p>
-            </div>
-            <div class="mt-3 border-t border-border/60 pt-3">
-              <div class="flex flex-wrap justify-start gap-x-3 gap-y-1">
-                <Button variant="link" size="sm" class="h-auto px-0 text-xs" @click="loadCacheKeys(row.rawName)">
-                  <Eye class="size-3.5" />
-                  查看
-                </Button>
-                <Button v-if="canManageCache" variant="link" size="sm" class="h-auto px-0 text-xs text-destructive hover:text-destructive/80" @click="handleClearName(row.rawName)">
-                  <Trash2 class="size-3.5" />
-                  清理
-                </Button>
+              <div class="min-w-0">
+                <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground">{{ item.label }}</p>
+                <p class="mt-2 text-[1.75rem] font-semibold tracking-tight">{{ item.value }}</p>
+                <p class="mt-2 text-xs leading-5 text-muted-foreground">{{ item.hint }}</p>
               </div>
             </div>
           </div>
         </div>
-        <div v-else class="rounded-3xl border border-dashed border-border/60 bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
-          暂无缓存
-        </div>
-        <div class="hidden md:block">
-          <AdminDataTable
-            :columns="cacheNameColumns"
-            :rows="cacheNameRows"
-            row-key="rawName"
-            :loading="loading"
-            loading-text="正在加载..."
-            empty-text="暂无缓存"
-            :actions="cacheNameRowActions"
-            action-header-class="w-[104px] text-right"
-          >
-            <template #cell-name="{ row }">
-              <div class="flex items-center gap-2">
-                <span class="font-medium">{{ row.name }}</span>
-                <Badge v-if="row.rawName === selectedCacheName" variant="outline">当前</Badge>
-              </div>
-            </template>
-          </AdminDataTable>
-        </div>
-      </AdminSectionCard>
 
-      <AdminSectionCard
-        title="缓存键"
-        :description="selectedCacheKey ? `已选：${selectedCacheKeyLabel}` : '选择缓存键。'"
-      >
-        <template #headerExtra>
-          <Badge variant="outline">共 {{ cacheKeyCount }} 项</Badge>
-        </template>
-        <div v-if="keyLoading && !cacheKeyRows.length" class="rounded-3xl border border-border/60 bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
-          正在加载...
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div
+            v-for="item in basicItems"
+            :key="item.label"
+            class="rounded-[22px] border border-border/60 bg-muted/12 px-4 py-4"
+          >
+            <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground">{{ item.label }}</p>
+            <p class="mt-2 break-all text-sm font-medium leading-6">{{ item.value }}</p>
+          </div>
         </div>
-        <div v-else-if="cacheKeyRows.length" class="space-y-3 md:hidden">
-          <div v-for="row in cacheKeyRows" :key="row.rawKey" class="rounded-3xl border border-border/60 bg-muted/10 p-4">
-            <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <p class="break-all text-sm font-semibold">{{ row.key }}</p>
-                <Badge v-if="row.rawKey === selectedCacheKey" variant="outline">当前</Badge>
-              </div>
+
+        <div v-if="commandStats.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div
+            v-for="item in commandStats"
+            :key="item.name"
+            class="rounded-[22px] border border-border/60 bg-primary/5 px-4 py-4"
+          >
+            <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground">{{ item.name }}</p>
+            <p class="mt-2 text-base font-semibold">{{ item.value }}</p>
+          </div>
+        </div>
+      </div>
+    </AdminSectionCard>
+
+    <div class="space-y-6">
+      <div class="grid gap-6 xl:grid-cols-2">
+        <AdminSectionCard
+          :title="nameCardTitle"
+          :description="selectedCacheName ? `已选：${selectedCacheNameLabel}` : '先选择一个缓存名称。'"
+        >
+          <template #headerExtra>
+            <div class="flex items-center gap-2">
+              <Button
+                v-if="canToggleNameDirectory"
+                variant="ghost"
+                size="sm"
+                class="h-8 gap-1.5 px-2.5 text-xs"
+                @click="nameDirectoryExpanded = !nameDirectoryExpanded"
+              >
+                <component :is="nameDirectoryExpanded ? ChevronUp : ChevronDown" class="size-3.5" />
+                {{ nameDirectoryExpanded ? '收起' : '展开' }}
+              </Button>
+            <Badge variant="outline">共 {{ cacheNameCount }} 项</Badge>
             </div>
-            <div class="mt-3 border-t border-border/60 pt-3">
-              <div class="flex flex-wrap justify-start gap-x-3 gap-y-1">
-                <Button variant="link" size="sm" class="h-auto px-0 text-xs" @click="loadCacheValue(selectedCacheName, row.rawKey)">
-                  <Eye class="size-3.5" />
-                  查看
-                </Button>
-                <Button v-if="canManageCache" variant="link" size="sm" class="h-auto px-0 text-xs text-destructive hover:text-destructive/80" @click="handleClearKey(row.rawKey)">
-                  <Trash2 class="size-3.5" />
-                  清理
-                </Button>
+          </template>
+
+          <div v-if="loading && !cacheNameRows.length" class="rounded-3xl border border-border/60 bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
+            正在加载...
+          </div>
+          <div v-else-if="visibleCacheNameRows.length" class="space-y-3 md:hidden">
+            <div v-for="row in visibleCacheNameRows" :key="row.rawName" class="rounded-3xl border border-border/60 bg-muted/10 p-4">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="truncate text-sm font-semibold">{{ row.name }}</p>
+                  <Badge v-if="row.rawName === selectedCacheName" variant="outline">当前</Badge>
+                </div>
+                <p class="mt-1 break-all text-xs text-muted-foreground">{{ row.remark }}</p>
+              </div>
+              <div class="mt-3 border-t border-border/60 pt-3">
+                <div class="flex flex-wrap justify-start gap-x-3 gap-y-1">
+                  <Button variant="link" size="sm" class="h-auto px-0 text-xs" @click="loadCacheKeys(row.rawName)">
+                    <Eye class="size-3.5" />
+                    查看
+                  </Button>
+                  <Button v-if="canManageCache" variant="link" size="sm" class="h-auto px-0 text-xs text-destructive hover:text-destructive/80" @click="handleClearName(row.rawName)">
+                    <Trash2 class="size-3.5" />
+                    清理
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div v-else class="rounded-3xl border border-dashed border-border/60 bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
-          暂无键
-        </div>
-        <div class="hidden md:block">
-          <AdminDataTable
-            :columns="cacheKeyColumns"
-            :rows="cacheKeyRows"
-            row-key="rawKey"
-            :loading="keyLoading"
-            loading-text="正在加载..."
-            empty-text="暂无键"
-            :actions="cacheKeyRowActions"
-            action-header-class="w-[104px] text-right"
-          >
-            <template #cell-key="{ row }">
-              <div class="flex items-center gap-2">
-                <span class="break-all font-medium">{{ row.key }}</span>
-                <Badge v-if="row.rawKey === selectedCacheKey" variant="outline">当前</Badge>
-              </div>
-            </template>
-          </AdminDataTable>
-        </div>
-      </AdminSectionCard>
+          <div v-else class="rounded-3xl border border-dashed border-border/60 bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
+            暂无缓存名称
+          </div>
+          <div class="hidden md:block">
+            <AdminDataTable
+              :columns="cacheNameColumns"
+              :rows="visibleCacheNameRows"
+              row-key="rawName"
+              :loading="loading"
+              loading-text="正在加载..."
+              empty-text="暂无缓存名称"
+              :actions="cacheNameRowActions"
+              action-header-class="w-[104px] text-right"
+            >
+              <template #cell-name="{ row }">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium">{{ row.name }}</span>
+                  <Badge v-if="row.rawName === selectedCacheName" variant="outline">当前</Badge>
+                </div>
+              </template>
+            </AdminDataTable>
+          </div>
+        </AdminSectionCard>
 
-      <AdminSectionCard
-        card-class="xl:col-span-2 2xl:col-span-1"
-        title="缓存值详情"
-        :description="valueCardDescription"
-      >
+        <AdminSectionCard
+          :title="keyCardTitle"
+          :description="selectedCacheKey ? `已选：${selectedCacheKeyLabel}` : '再选择一个缓存键。'"
+        >
+          <template #headerExtra>
+            <div class="flex items-center gap-2">
+              <Button
+                v-if="canToggleKeyDirectory"
+                variant="ghost"
+                size="sm"
+                class="h-8 gap-1.5 px-2.5 text-xs"
+                @click="keyDirectoryExpanded = !keyDirectoryExpanded"
+              >
+                <component :is="keyDirectoryExpanded ? ChevronUp : ChevronDown" class="size-3.5" />
+                {{ keyDirectoryExpanded ? '收起' : '展开' }}
+              </Button>
+            <Badge variant="outline">共 {{ cacheKeyCount }} 项</Badge>
+            </div>
+          </template>
+
+          <div v-if="keyLoading && !cacheKeyRows.length" class="rounded-3xl border border-border/60 bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
+            正在加载...
+          </div>
+          <div v-else-if="visibleCacheKeyRows.length" class="space-y-3 md:hidden">
+            <div v-for="row in visibleCacheKeyRows" :key="row.rawKey" class="rounded-3xl border border-border/60 bg-muted/10 p-4">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="break-all text-sm font-semibold">{{ row.key }}</p>
+                  <Badge v-if="row.rawKey === selectedCacheKey" variant="outline">当前</Badge>
+                </div>
+              </div>
+              <div class="mt-3 border-t border-border/60 pt-3">
+                <div class="flex flex-wrap justify-start gap-x-3 gap-y-1">
+                  <Button variant="link" size="sm" class="h-auto px-0 text-xs" @click="loadCacheValue(selectedCacheName, row.rawKey)">
+                    <Eye class="size-3.5" />
+                    查看
+                  </Button>
+                  <Button v-if="canManageCache" variant="link" size="sm" class="h-auto px-0 text-xs text-destructive hover:text-destructive/80" @click="handleClearKey(row.rawKey)">
+                    <Trash2 class="size-3.5" />
+                    清理
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="rounded-3xl border border-dashed border-border/60 bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
+            暂无缓存键
+          </div>
+          <div class="hidden md:block">
+            <AdminDataTable
+              :columns="cacheKeyColumns"
+              :rows="visibleCacheKeyRows"
+              row-key="rawKey"
+              :loading="keyLoading"
+              loading-text="正在加载..."
+              empty-text="暂无缓存键"
+              :actions="cacheKeyRowActions"
+              action-header-class="w-[104px] text-right"
+            >
+              <template #cell-key="{ row }">
+                <div class="flex items-center gap-2">
+                  <span class="break-all font-medium">{{ row.key }}</span>
+                  <Badge v-if="row.rawKey === selectedCacheKey" variant="outline">当前</Badge>
+                </div>
+              </template>
+            </AdminDataTable>
+          </div>
+        </AdminSectionCard>
+      </div>
+
+      <AdminSectionCard :title="valueCardTitle" :description="valueCardDescription" content-class="space-y-4">
         <template #headerExtra>
-          <Button variant="outline" size="sm" class="gap-1" :disabled="!canCopyValue" @click="handleCopyValue">
+          <Button variant="outline" size="sm" class="gap-1.5" :disabled="!canCopyValue" @click="handleCopyValue">
             <Copy class="size-3.5" />
             复制内容
           </Button>
         </template>
-        <div class="rounded-3xl border border-border/60 bg-muted/20 p-4">
-          <pre class="min-h-[160px] overflow-x-auto surface-scrollbar whitespace-pre-wrap font-mono text-xs leading-6 text-foreground sm:min-h-[240px] xl:min-h-[480px]">{{ valueLoading ? '正在加载缓存值...' : selectedValueText }}</pre>
+
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div class="rounded-[22px] border border-border/60 bg-muted/12 px-4 py-4">
+            <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground">当前名称</p>
+            <p class="mt-2 break-all text-sm font-medium">{{ selectedCacheNameLabel || '--' }}</p>
+          </div>
+          <div class="rounded-[22px] border border-border/60 bg-muted/12 px-4 py-4">
+            <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground">当前键</p>
+            <p class="mt-2 break-all text-sm font-medium">{{ selectedCacheKeyLabel || '--' }}</p>
+          </div>
+          <div class="rounded-[22px] border border-border/60 bg-muted/12 px-4 py-4 xl:col-span-1 sm:col-span-2">
+            <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground">查看状态</p>
+            <p class="mt-2 text-sm font-medium">{{ valueLoading ? '正在加载内容…' : '已就绪' }}</p>
+          </div>
+        </div>
+
+        <div class="rounded-[28px] border border-border/60 bg-muted/20 p-4">
+          <pre class="min-h-[280px] overflow-x-auto surface-scrollbar whitespace-pre-wrap font-mono text-xs leading-6 text-foreground xl:min-h-[560px]">{{ valueLoading ? '正在加载缓存值...' : selectedValueText }}</pre>
         </div>
       </AdminSectionCard>
     </div>
   </div>
 </template>
-
-
-
-
-
-
-
-
-
-
-
-
-
-

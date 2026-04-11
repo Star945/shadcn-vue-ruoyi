@@ -11,6 +11,7 @@ import { cleanJobLog, delJobLog, exportJobLog, listJobLog } from '@/api/monitor/
 import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 
 import AdminDialogContent from '@/components/admin/AdminDialogContent.vue'
 import { Badge } from '@/components/ui/badge'
@@ -274,9 +275,7 @@ onMounted(async () => {
           <span class="font-medium">{{ value }}</span>
         </template>
         <template #cell-status="{ row }">
-          <Badge :variant="String(row.status ?? '0') === '0' ? 'outline' : 'destructive'">
-            {{ statusText(String(row.status ?? '0')) }}
-          </Badge>
+          <AdminStatusBadge :label="statusText(String(row.status ?? '0'))" />
         </template>
       </AdminDataTable>
     </AdminSectionCard>

@@ -11,6 +11,7 @@ import AdminDateRangePicker from '@/components/admin/AdminDateRangePicker.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -267,9 +268,7 @@ onMounted(loadList)
           <span class="font-medium">{{ value }}</span>
         </template>
         <template #cell-status="{ row }">
-          <Badge :variant="String(row.status) === '0' ? 'default' : 'destructive'">
-            {{ monitorResultLabel(row.status) }}
-          </Badge>
+          <AdminStatusBadge :label="monitorResultLabel(row.status)" />
         </template>
       </AdminDataTable>
     </AdminSectionCard>

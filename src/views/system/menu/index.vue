@@ -10,6 +10,7 @@ import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -370,10 +371,10 @@ onMounted(async () => {
           <Badge variant="outline">{{ menuTypeText(String(row.raw.menuType)) }}</Badge>
         </template>
         <template #cell-visible="{ row }">
-          <Badge variant="outline">{{ visibleText(String(row.raw.visible ?? '0')) }}</Badge>
+          <AdminStatusBadge :label="visibleText(String(row.raw.visible ?? '0'))" />
         </template>
         <template #cell-status="{ row }">
-          <Badge variant="outline">{{ statusText(String(row.raw.status ?? '0')) }}</Badge>
+          <AdminStatusBadge :label="statusText(String(row.raw.status ?? '0'))" />
         </template>
       </AdminDataTable>
     </AdminSectionCard>
