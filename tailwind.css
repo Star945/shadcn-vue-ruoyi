@@ -270,6 +270,194 @@
     opacity: 0;
     transform: translateY(8px) scale(0.995);
   }
+
+  .rich-html-content {
+    color: hsl(var(--foreground));
+  }
+
+  .rich-html-content p,
+  .rich-html-content h1,
+  .rich-html-content h2,
+  .rich-html-content h3,
+  .rich-html-content blockquote,
+  .rich-html-content pre,
+  .rich-html-content table,
+  .rich-html-content ul,
+  .rich-html-content ol,
+  .rich-html-content .rich-video-embed,
+  .rich-html-content hr {
+    margin: 0 0 0.9rem;
+  }
+
+  .rich-html-content p:last-child,
+  .rich-html-content h1:last-child,
+  .rich-html-content h2:last-child,
+  .rich-html-content h3:last-child,
+  .rich-html-content blockquote:last-child,
+  .rich-html-content pre:last-child,
+  .rich-html-content table:last-child,
+  .rich-html-content ul:last-child,
+  .rich-html-content ol:last-child,
+  .rich-html-content .rich-video-embed:last-child,
+  .rich-html-content hr:last-child {
+    margin-bottom: 0;
+  }
+
+  .rich-html-content h1,
+  .rich-html-content h2,
+  .rich-html-content h3 {
+    line-height: 1.35;
+    font-weight: 700;
+  }
+
+  .rich-html-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .rich-html-content h2 {
+    font-size: 1.25rem;
+  }
+
+  .rich-html-content h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .rich-html-content a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .rich-html-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid hsl(var(--border) / 0.7);
+    box-shadow: 0 10px 30px -24px rgba(15, 23, 42, 0.35);
+  }
+
+  .rich-html-content ul,
+  .rich-html-content ol {
+    padding-left: 1.25rem;
+  }
+
+  .rich-html-content li + li {
+    margin-top: 0.3rem;
+  }
+
+  .rich-html-content ul[data-type='taskList'] {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .rich-html-content ul[data-type='taskList'] > li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .rich-html-content ul[data-type='taskList'] > li > label {
+    margin-top: 0.2rem;
+    display: inline-flex;
+  }
+
+  .rich-html-content ul[data-type='taskList'] input[type='checkbox'] {
+    accent-color: hsl(var(--primary));
+  }
+
+  .rich-html-content blockquote {
+    border-left: 3px solid hsl(var(--primary) / 0.35);
+    color: hsl(var(--muted-foreground));
+    padding-left: 1rem;
+  }
+
+  .rich-html-content pre {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    background: hsl(var(--muted) / 0.45);
+    border: 1px solid hsl(var(--border));
+    padding: 0.875rem 1rem;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  .rich-html-content code {
+    border-radius: var(--radius-sm);
+    background: hsl(var(--muted) / 0.55);
+    padding: 0.15rem 0.35rem;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 0.875em;
+  }
+
+  .rich-html-content pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  .rich-html-content mark {
+    border-radius: var(--radius-sm);
+    padding: 0.05rem 0.2rem;
+    color: inherit;
+  }
+
+  .rich-html-content hr {
+    border: none;
+    border-top: 1px solid hsl(var(--border));
+  }
+
+  .rich-html-content table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+  }
+
+  .rich-html-content th,
+  .rich-html-content td {
+    border: 1px solid hsl(var(--border));
+    padding: 0.7rem 0.8rem;
+    vertical-align: top;
+    text-align: left;
+  }
+
+  .rich-html-content th {
+    background: hsl(var(--muted) / 0.45);
+    font-weight: 600;
+  }
+
+  .rich-html-content .rich-video-embed {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    border-radius: var(--radius-xl);
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--muted) / 0.35);
+    aspect-ratio: 16 / 9;
+  }
+
+  .rich-html-content .rich-video-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .rich-html-content .has-text-align-left {
+    text-align: left;
+  }
+
+  .rich-html-content .has-text-align-center {
+    text-align: center;
+  }
+
+  .rich-html-content .has-text-align-right {
+    text-align: right;
+  }
 }
 
 

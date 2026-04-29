@@ -2,12 +2,7 @@ import type { IconName } from '@/lib/icons'
 
 import { defineStore } from 'pinia'
 
-import { getRouters } from '@/api/menu'
-import {
-  canonicalizeBackendRoutePath,
-  resolveCanonicalBackendRoutePath,
-  resolveRawBackendRoutePath,
-} from '@/router/backend-route-map'
+import { usePermissionStore } from '@/stores/permission'
 
 export interface NavigationItem {
   title: string
@@ -45,13 +40,9 @@ interface NavigationState {
   loading: boolean
 }
 
-// 后端菜单拉取失败时使用的前端保底导航，只覆盖进入后台所必需的主链路。
 const fallbackTree: NavigationNode[] = [
   {
-    title: '系统管理',
-    path: '/system',
-    icon: 'sliders',
-    clickable: false,
+    title: '系统管理', path: '/system', icon: 'sliders', clickable: false,
     children: [
       { title: '用户管理', path: '/system/user', icon: 'users', clickable: true, children: [] },
       { title: '角色管理', path: '/system/role', icon: 'shield', clickable: true, children: [] },
@@ -64,10 +55,7 @@ const fallbackTree: NavigationNode[] = [
     ],
   },
   {
-    title: '系统监控',
-    path: '/monitor',
-    icon: 'monitor-cog',
-    clickable: false,
+    title: '系统监控', path: '/monitor', icon: 'monitor-cog', clickable: false,
     children: [
       { title: '在线用户', path: '/monitor/online', icon: 'users', clickable: true, children: [] },
       { title: '定时任务', path: '/monitor/job', icon: 'timer', clickable: true, children: [] },
@@ -80,10 +68,7 @@ const fallbackTree: NavigationNode[] = [
     ],
   },
   {
-    title: '系统工具',
-    path: '/tool',
-    icon: 'app-window',
-    clickable: false,
+    title: '系统工具', path: '/tool', icon: 'app-window', clickable: false,
     children: [
       { title: '表单构建', path: '/tool/build', icon: 'palette', clickable: true, children: [] },
       { title: '代码生成', path: '/tool/gen', icon: 'code', clickable: true, children: [] },
@@ -104,58 +89,25 @@ const quickActions: NavigationItem[] = [
 const quickActionGroupTitle = '快捷入口'
 
 const iconAliases: Record<string, IconName> = {
-  dashboard: 'layout-dashboard',
-  monitor: 'monitor-cog',
-  tool: 'app-window',
-  system: 'sliders',
-  peoples: 'users',
-  user: 'user',
-  role: 'shield',
-  tree: 'folder-tree',
-  'tree-table': 'folder-tree',
-  treeTable: 'folder-tree',
-  dept: 'network',
-  post: 'briefcase',
-  dict: 'book',
-  edit: 'sliders',
-  message: 'bell',
-  online: 'users',
-  job: 'timer',
-  log: 'logs',
-  form: 'palette',
-  build: 'palette',
-  code: 'code',
-  swagger: 'swagger',
-  redis: 'database',
-  'redis-list': 'database',
-  druid: 'monitor-cog',
-  server: 'server',
-  guide: 'app-window',
+  dashboard: 'layout-dashboard', monitor: 'monitor-cog', tool: 'app-window', system: 'sliders',
+  peoples: 'users', user: 'user', role: 'shield', tree: 'folder-tree', 'tree-table': 'folder-tree',
+  treeTable: 'folder-tree', dept: 'network', post: 'briefcase', dict: 'book', edit: 'sliders',
+  message: 'bell', online: 'users', job: 'timer', log: 'logs', form: 'palette', build: 'palette',
+  code: 'code', swagger: 'swagger', redis: 'database', 'redis-list': 'database',
+  druid: 'monitor-cog', server: 'server', guide: 'app-window',
 }
 
-function matchesPathOrChild(path: string, target: string) {
-  if (!target || isExternalValue(target)) {
-    return path === target
-  }
-  const normalizedPath = canonicalizePath(path)
-  const normalizedTarget = canonicalizePath(target)
-  return normalizedPath === normalizedTarget || normalizedPath.startsWith(`${normalizedTarget}/`)
+function normalizePath(path: string) {
+  if (!path) return '/'
+  const p = path.startsWith('/') ? path : `/${path}`
+  return p.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
 }
 
-function canonicalizePath(path: string) {
-  return canonicalizeBackendRoutePath(path)
-}
-
-function resolveRawPath(parentPath: string, path?: string) {
-  return resolveRawBackendRoutePath(parentPath, path)
-}
-
-function resolvePath(parentPath: string, path?: string, component?: string) {
-  return resolveCanonicalBackendRoutePath(path, component, parentPath)
-}
-
-function titleOf(route: BackendRoute) {
-  return String(route.meta?.title ?? '').trim()
+function joinPath(parent: string, child?: string) {
+  if (!child || child === '/') return parent || '/'
+  if (child.startsWith('/')) return normalizePath(child)
+  if (!parent || parent === '/') return normalizePath(child)
+  return normalizePath(`${parent}/${child}`)
 }
 
 function isExternalValue(value: string) {
@@ -184,93 +136,61 @@ function iconFromPath(path: string): IconName {
 
 function iconOf(route: BackendRoute, path: string): IconName {
   const raw = String(route.meta?.icon ?? '').trim()
-  if (raw && raw in iconAliases) {
-    return iconAliases[raw]
-  }
+  if (raw && raw in iconAliases) return iconAliases[raw]
   return iconFromPath(path)
+}
+
+function titleOf(route: BackendRoute) {
+  return String(route.meta?.title ?? '').trim()
 }
 
 function dedupeNodes(nodes: NavigationNode[]) {
   const seen = new Set<string>()
-  return nodes.reduce<NavigationNode[]>((accumulator, node) => {
+  return nodes.reduce<NavigationNode[]>((acc, node) => {
     const key = `${node.title}::${node.path}`
-    if (seen.has(key)) {
-      return accumulator
-    }
+    if (seen.has(key)) return acc
     seen.add(key)
-    accumulator.push({
-      ...node,
-      children: dedupeNodes(node.children),
-    })
-    return accumulator
+    acc.push({ ...node, children: dedupeNodes(node.children) })
+    return acc
   }, [])
 }
 
-function flattenClickableNodes(nodes: NavigationNode[], accumulator: NavigationItem[] = []) {
+function flattenClickableNodes(nodes: NavigationNode[], acc: NavigationItem[] = []) {
   nodes.forEach((node) => {
-    if (node.clickable) {
-      accumulator.push({
-        title: node.title,
-        path: node.path,
-        icon: node.icon,
-        external: node.external,
-      })
-    }
-    if (node.children.length) {
-      flattenClickableNodes(node.children, accumulator)
-    }
+    if (node.clickable) acc.push({ title: node.title, path: node.path, icon: node.icon, external: node.external })
+    if (node.children.length) flattenClickableNodes(node.children, acc)
   })
-  return accumulator
+  return acc
 }
 
 function uniqueByPath(items: NavigationItem[]) {
   const seen = new Set<string>()
-  return items.reduce<NavigationItem[]>((accumulator, item) => {
+  return items.reduce<NavigationItem[]>((acc, item) => {
     const key = `${item.title}::${item.path}`
-    if (seen.has(key)) {
-      return accumulator
-    }
+    if (seen.has(key)) return acc
     seen.add(key)
-    accumulator.push(item)
-    return accumulator
+    acc.push(item)
+    return acc
   }, [])
 }
 
 function findTrailInNodes(nodes: NavigationNode[], path: string, trail: NavigationNode[] = []): NavigationNode[] {
-  const normalizedPath = canonicalizePath(path)
-
+  const normalized = normalizePath(path)
   for (const node of nodes) {
     const nextTrail = [...trail, node]
-    const childTrail = findTrailInNodes(node.children, normalizedPath, nextTrail)
-    if (childTrail.length) {
-      return childTrail
-    }
-
-    if (!node.external && canonicalizePath(node.path) === normalizedPath) {
-      return nextTrail
-    }
+    const childTrail = findTrailInNodes(node.children, normalized, nextTrail)
+    if (childTrail.length) return childTrail
+    if (!node.external && normalizePath(node.path) === normalized) return nextTrail
   }
-
   return []
 }
 
 function resolveFirstClickableNode(node: NavigationNode): NavigationItem | undefined {
-  if (node.clickable) {
-    return {
-      title: node.title,
-      path: node.path,
-      icon: node.icon,
-      external: node.external,
-    }
-  }
-
+  if (node.clickable) return { title: node.title, path: node.path, icon: node.icon, external: node.external }
   for (const child of node.children) {
     const matched = resolveFirstClickableNode(child)
-    if (matched) {
-      return matched
-    }
+    if (matched) return matched
   }
-
   return undefined
 }
 
@@ -281,25 +201,17 @@ function createTitleMap(tree: NavigationNode[]) {
   }, {})
 }
 
-// 后端返回的 hidden 节点不直接进菜单，但要把可见子节点提升出来，否则面包屑和路由访问会丢失。
 function buildTree(routes: BackendRoute[], parentPath = '', titleMap: Record<string, string> = {}) {
   const nodes: NavigationNode[] = []
-
   routes.forEach((route) => {
-    const rawPath = resolveRawPath(parentPath, route.path)
     const link = String(route.meta?.link ?? '').trim()
     const externalTarget = link || String(route.path ?? '').trim()
     const external = isExternalValue(externalTarget)
-    const path = external ? externalTarget : resolvePath(parentPath, route.path, route.component)
+    const path = external ? externalTarget : joinPath(parentPath, route.path)
     const title = titleOf(route)
-    const children = Array.isArray(route.children) ? buildTree(route.children, rawPath, titleMap) : []
+    const children = Array.isArray(route.children) ? buildTree(route.children, path, titleMap) : []
 
-    if (title) {
-      titleMap[path] = title
-      if (!external && rawPath !== path) {
-        titleMap[rawPath] = title
-      }
-    }
+    if (title) titleMap[path] = title
 
     const isVisible = !route.hidden && Boolean(title)
     if (!isVisible) {
@@ -309,35 +221,18 @@ function buildTree(routes: BackendRoute[], parentPath = '', titleMap: Record<str
 
     const containerOnly = route.component === 'Layout' || route.component === 'ParentView'
     const clickable = external || !containerOnly
-    const node: NavigationNode = {
-      title,
-      path,
-      icon: iconOf(route, path),
-      external,
-      clickable,
-      children,
-    }
+    const node: NavigationNode = { title, path, icon: iconOf(route, path), external, clickable, children }
 
-    if (!node.clickable && !node.children.length) {
-      return
-    }
-
+    if (!node.clickable && !node.children.length) return
     nodes.push(node)
   })
-
   return dedupeNodes(nodes)
 }
 
 function buildNavigation(routes: BackendRoute[]) {
   const titleMap: Record<string, string> = {}
   const tree = buildTree(routes, '', titleMap)
-  return {
-    tree,
-    titleMap: {
-      ...createTitleMap(tree),
-      ...titleMap,
-    },
-  }
+  return { tree, titleMap: { ...createTitleMap(tree), ...titleMap } }
 }
 
 export const useNavigationStore = defineStore('navigation', {
@@ -359,19 +254,14 @@ export const useNavigationStore = defineStore('navigation', {
   },
   actions: {
     async ensureLoaded(force = false) {
-      if (this.loading || (this.loaded && !force)) {
-        return
-      }
+      if (this.loading || (this.loaded && !force)) return
       this.loading = true
       try {
-        const response = await getRouters()
-        const backendRoutes = Array.isArray(response.data) ? response.data : []
+        const permission = usePermissionStore()
+        const backendRoutes = permission.sidebarRouters
         const built = buildNavigation(backendRoutes)
         this.tree = built.tree.length ? built.tree : fallbackTree
-        this.titleMap = {
-          ...createTitleMap(this.tree),
-          ...built.titleMap,
-        }
+        this.titleMap = { ...createTitleMap(this.tree), ...built.titleMap }
         this.loaded = true
       }
       catch {
@@ -384,7 +274,7 @@ export const useNavigationStore = defineStore('navigation', {
       }
     },
     resolveTitle(path: string) {
-      const normalized = canonicalizePath(path)
+      const normalized = normalizePath(path)
       return this.titleMap[normalized] ?? this.titleMap[path]
     },
     findTrail(path: string) {
@@ -394,33 +284,15 @@ export const useNavigationStore = defineStore('navigation', {
       return this.findTrail(path)[0]
     },
     findItem(path: string) {
-      const normalized = canonicalizePath(path)
-      return [...this.allItems, ...this.quickActions].find(item => item.external ? item.path === path : matchesPathOrChild(normalized, item.path))
+      const normalized = normalizePath(path)
+      return [...this.allItems, ...this.quickActions].find((item) => {
+        if (item.external) return item.path === path
+        const np = normalizePath(item.path)
+        return normalized === np || normalized.startsWith(`${np}/`)
+      })
     },
     resolveNodeTarget(node: NavigationNode) {
       return resolveFirstClickableNode(node)
-    },
-    canAccessRoute(path: string, activeMenu?: string) {
-      const normalized = canonicalizePath(path)
-      const normalizedActiveMenu = activeMenu ? canonicalizePath(activeMenu) : ''
-
-      if (this.localEntries.some(item => matchesPathOrChild(normalized, item.path))) {
-        return true
-      }
-
-      if (this.quickActions.some(item => matchesPathOrChild(normalized, item.path))) {
-        return true
-      }
-
-      if (this.findTrail(normalized).length) {
-        return true
-      }
-
-      if (normalizedActiveMenu && (this.findTrail(normalizedActiveMenu).length || this.quickActions.some(item => matchesPathOrChild(normalizedActiveMenu, item.path)))) {
-        return true
-      }
-
-      return false
     },
     quickActionGroupTitle() {
       return quickActionGroupTitle

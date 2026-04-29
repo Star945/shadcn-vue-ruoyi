@@ -8,6 +8,7 @@ export interface RequestConfig {
   headers?: Record<string, string | number | boolean>
   timeout?: number
   responseType?: 'json' | 'text' | 'blob'
+  handleUnauthorized?: boolean
 }
 
 export class RequestError extends Error {
@@ -53,7 +54,18 @@ function parseJsonSafely(rawText: string) {
   }
 }
 
-async function readBlobError(response: Response, blob: Blob) {
+function emitUnauthorized(message: string) {
+  if (typeof window === 'undefined') {
+    return
+  }
+  window.dispatchEvent(new CustomEvent('auth:unauthorized', { detail: { message } }))
+}
+
+function buildUnauthorizedMessage(payload: any, fallback = '登录状态已过期，请重新登录') {
+  return String(payload?.msg ?? payload?.message ?? fallback)
+}
+
+async function readBlobError(response: Response, blob: Blob, handleUnauthorized = true) {
   const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
   if (!contentType.includes('application/json') && !contentType.includes('text/json')) {
     if (!response.ok) {
@@ -68,6 +80,9 @@ async function readBlobError(response: Response, blob: Blob) {
 
   if (response.status === 401 || code === 401) {
     removeToken()
+    if (handleUnauthorized) {
+      emitUnauthorized(buildUnauthorizedMessage(payload))
+    }
     throw new RequestError(payload?.msg ?? '会话已过期', 401, payload)
   }
 
@@ -120,7 +135,7 @@ export async function request<T = any>(config: RequestConfig): Promise<T> {
     const response = await fetch(buildUrl(`${import.meta.env.VITE_APP_BASE_API}${config.url}`, config.params), requestInit)
     if (config.responseType === 'blob') {
       const blob = await response.blob()
-      await readBlobError(response, blob)
+      await readBlobError(response, blob, config.handleUnauthorized !== false)
       return blob as T
     }
     const rawText = await response.text()
@@ -129,6 +144,9 @@ export async function request<T = any>(config: RequestConfig): Promise<T> {
 
     if (response.status === 401 || code === 401) {
       removeToken()
+      if (config.handleUnauthorized !== false) {
+        emitUnauthorized(buildUnauthorizedMessage(payload))
+      }
       throw new RequestError(payload.msg ?? '会话已过期', 401, payload)
     }
 

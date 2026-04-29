@@ -37,6 +37,7 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { resolveIcon } from '@/lib/icons'
 import { useNavigationStore } from '@/stores/navigation'
+import { usePermissionStore } from '@/stores/permission'
 import { useSessionStore } from '@/stores/session'
 import { useUiStore } from '@/stores/ui'
 
@@ -45,6 +46,7 @@ const route = useRoute()
 const session = useSessionStore()
 const ui = useUiStore()
 const navigation = useNavigationStore()
+const permission = usePermissionStore()
 
 const topGroupScrollRef = ref<{ wrapRef: HTMLElement | null, update: () => void } | null>(null)
 const activeMenu = computed(() => String(route.meta.activeMenu ?? route.path))
@@ -129,9 +131,12 @@ function refreshCurrentRoute() {
 }
 
 async function logout() {
+  const redirect = route.fullPath.startsWith('/') && !route.fullPath.startsWith('//') ? route.fullPath : '/index'
+  permission.resetRoutes(router)
+  navigation.$reset()
   await session.logout()
   ui.resetTags()
-  router.push('/login')
+  router.replace({ path: '/login', query: { redirect } })
 }
 
 function lockScreen() {

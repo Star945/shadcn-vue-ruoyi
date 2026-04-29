@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { prepareRichHtml } from '@/utils/rich-html'
 
 interface NoticeItem {
   noticeId: string | number
@@ -69,7 +70,7 @@ const previewNotice = ref<NoticeItem | null>(null)
 
 const hasUnread = computed(() => unreadCount.value > 0)
 const noticeCountLabel = computed(() => unreadCount.value > 99 ? '99+' : String(unreadCount.value))
-const previewHtml = computed(() => resolveNoticeHtml(previewNotice.value?.noticeContent || `<p>${copy.noContent}</p>`))
+const previewHtml = computed(() => prepareRichHtml(previewNotice.value?.noticeContent || `<p>${copy.noContent}</p>`))
 
 function normalizeNotice(item: Record<string, any>): NoticeItem {
   return {
@@ -89,25 +90,6 @@ function noticeTypeText(value: string) {
 
 function noticeTypeVariant(value: string) {
   return value === '1' ? 'secondary' : 'outline'
-}
-
-function resolveNoticeAssetUrl(value: string) {
-  const raw = value.trim()
-  if (!raw || /^(https?:|data:|blob:|mailto:|tel:|#)/i.test(raw)) {
-    return raw
-  }
-  const base = String(import.meta.env.VITE_APP_BASE_API ?? '').trim()
-  if (!base) {
-    return raw
-  }
-  return raw.startsWith('/') ? `${base}${raw}` : `${base}/${raw}`
-}
-
-function resolveNoticeHtml(html: string) {
-  return html.replace(/(src|href)=(["'])([^"']+)\2/gi, (_match, attr, quote, value) => {
-    const nextValue = resolveNoticeAssetUrl(String(value))
-    return `${attr}=${quote}${nextValue}${quote}`
-  })
 }
 
 function syncUnreadCount(explicitCount?: unknown) {
@@ -278,70 +260,12 @@ onMounted(() => {
           <span>{{ copy.publishTime }} {{ previewNotice?.createTime || '--' }}</span>
         </div>
         <div class="rounded-3xl border border-border/60 bg-muted/20 px-5 py-5">
-          <div class="notice-rich text-sm leading-7 text-foreground" v-html="previewHtml" />
+          <div class="rich-html-content text-sm leading-7 text-foreground" v-html="previewHtml" />
         </div>
       </div>
     </AdminDialogContent>
   </Dialog>
 </template>
-
-<style scoped>
-.notice-rich :deep(img) {
-  max-width: 100%;
-  border-radius: var(--radius);
-}
-
-.notice-rich :deep(p) {
-  margin: 0 0 1em;
-}
-
-.notice-rich :deep(a) {
-  color: hsl(var(--primary));
-  text-decoration: underline;
-}
-
-.notice-rich :deep(h1),
-.notice-rich :deep(h2),
-.notice-rich :deep(h3) {
-  margin: 0 0 0.75rem;
-  line-height: 1.4;
-}
-
-.notice-rich :deep(h1) {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.notice-rich :deep(h2) {
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.notice-rich :deep(h3) {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.notice-rich :deep(blockquote) {
-  margin: 0.75rem 0;
-  border-left: 3px solid hsl(var(--primary) / 0.35);
-  padding-left: 1rem;
-  color: hsl(var(--muted-foreground));
-}
-
-.notice-rich :deep(pre) {
-  margin: 0.75rem 0;
-  overflow-x: auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--muted) / 0.45);
-  padding: 0.875rem 1rem;
-}
-
-.notice-rich :deep(code) {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-}
-</style>
 
 
 
