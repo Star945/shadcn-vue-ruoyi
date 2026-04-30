@@ -3,8 +3,6 @@
 import { getInfo, login as loginApi, logout as logoutApi } from '@/api/login'
 import { getToken, removeToken, setToken } from '@/utils/auth'
 
-const storageKey = 'ruoyi-shadcn-session'
-
 export interface SessionUser {
   id: string
   name: string
@@ -90,59 +88,13 @@ export const useSessionStore = defineStore('session', {
     isAuthenticated: state => Boolean(state.token),
   },
   actions: {
-    persist() {
-      if (typeof window === 'undefined') {
-        return
-      }
-      localStorage.setItem(storageKey, JSON.stringify({
-        locked: this.locked,
-        user: this.user,
-        roles: this.roles,
-        permissions: this.permissions,
-      }))
-    },
-    clearPersistedState() {
-      if (typeof window === 'undefined') {
-        return
-      }
-      localStorage.removeItem(storageKey)
-    },
-    restore() {
+    hydrateToken() {
       this.token = getToken()
       this.profileLoaded = false
-
-      if (typeof window === 'undefined') {
-        return
-      }
-
-      const raw = localStorage.getItem(storageKey)
-      if (!raw) {
-        if (!this.token) {
-          this.user = defaultUser()
-          this.roles = []
-          this.permissions = []
-          this.locked = false
-        }
-        return
-      }
-
-      try {
-        const parsed = JSON.parse(raw) as Partial<SessionState>
-        this.locked = parsed.locked ?? false
-        this.user = {
-          ...defaultUser(),
-          ...(parsed.user ?? {}),
-        }
-        this.roles = Array.isArray(parsed.roles) ? parsed.roles : []
-        this.permissions = Array.isArray(parsed.permissions) ? parsed.permissions : []
-      }
-      catch {
-        this.clearPersistedState()
-      }
-
-      if (!this.token) {
-        this.clearSession(false)
-      }
+      this.user = { ...defaultUser(), ...this.user }
+      if (!Array.isArray(this.roles)) this.roles = []
+      if (!Array.isArray(this.permissions)) this.permissions = []
+      if (!this.token) this.clearSession(false)
     },
     async login(payload: LoginPayload) {
       const response = await loginApi(payload.username, payload.password, payload.code, payload.uuid)
@@ -150,54 +102,48 @@ export const useSessionStore = defineStore('session', {
       this.token = response.token
       this.locked = false
       this.profileLoaded = false
-      this.persist()
       await this.fetchProfile()
     },
     async fetchProfile() {
-      if (!this.token) {
-        return null
-      }
-
+      if (!this.token) return null
       const response = await getInfo()
       const roles = Array.isArray(response.roles) ? response.roles : []
       this.roles = roles
       this.permissions = Array.isArray(response.permissions) ? response.permissions : []
       this.user = normalizeUser(response.user, roles)
       this.profileLoaded = true
-      this.persist()
       return response
     },
     lock() {
       this.locked = true
-      this.persist()
     },
     unlock() {
       this.locked = false
-      this.persist()
     },
     clearSession(clearToken = true) {
-      if (clearToken) {
-        removeToken()
-      }
+      if (clearToken) removeToken()
       this.token = ''
       this.locked = false
       this.user = defaultUser()
       this.roles = []
       this.permissions = []
       this.profileLoaded = false
-      this.clearPersistedState()
     },
     async logout() {
       try {
-        if (this.token) {
-          await logoutApi()
-        }
+        if (this.token) await logoutApi()
       }
-      catch {
-      }
+      catch {}
       finally {
         this.clearSession()
       }
+    },
+  },
+  persist: {
+    key: 'ruoyi-shadcn-session',
+    pick: ['locked', 'user', 'roles', 'permissions'],
+    afterHydrate(ctx) {
+      ctx.store.hydrateToken()
     },
   },
 })

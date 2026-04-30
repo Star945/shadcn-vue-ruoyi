@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 import AdminLayout from '@/layout/AdminLayout.vue'
 import ParentView from '@/layout/ParentView.vue'
 import { permissionKeys } from '@/lib/permission-keys'
+import { type BackendRoute, isExternalValue, joinPath } from '@/lib/route-utils'
 import { getRouters } from '@/api/menu'
 import { useSessionStore } from '@/stores/session'
 
@@ -24,35 +25,6 @@ function resolveViewModule(component: string) {
   return undefined
 }
 
-interface BackendRoute {
-  name?: string
-  path?: string
-  hidden?: boolean
-  component?: string
-  alwaysShow?: boolean
-  redirect?: string
-  children?: BackendRoute[]
-  meta?: {
-    title?: string
-    icon?: string
-    noCache?: boolean
-    link?: string | null
-  }
-}
-
-function normalizePath(path: string) {
-  if (!path) return '/'
-  const p = path.startsWith('/') ? path : `/${path}`
-  return p.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
-}
-
-function joinPath(parent: string, child?: string) {
-  if (!child || child === '/') return parent || '/'
-  if (child.startsWith('/')) return normalizePath(child)
-  if (!parent || parent === '/') return normalizePath(child)
-  return normalizePath(`${parent}/${child}`)
-}
-
 function generateRouteName(path: string) {
   return path
     .replace(/^\//, '')
@@ -61,10 +33,6 @@ function generateRouteName(path: string) {
     .replace(/_+/g, '_')
     .replace(/_$/, '')
     || 'Index'
-}
-
-function isExternalValue(value?: string | null) {
-  return typeof value === 'string' && /^https?:\/\//i.test(value)
 }
 
 function filterAsyncRouter(routes: BackendRoute[], parentPath = ''): RouteRecordRaw[] {

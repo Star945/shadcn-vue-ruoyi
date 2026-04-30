@@ -66,6 +66,26 @@ export const iconMap = {
 
 export type IconName = keyof typeof iconMap
 
+const menuIconAliases: Record<string, IconName> = {
+  dashboard: 'layout-dashboard', monitor: 'monitor-cog', tool: 'app-window', system: 'sliders',
+  peoples: 'users', user: 'user', role: 'shield', tree: 'folder-tree', 'tree-table': 'folder-tree',
+  treeTable: 'folder-tree', dept: 'network', post: 'briefcase', dict: 'book', edit: 'sliders',
+  message: 'bell', online: 'users', job: 'timer', log: 'logs', form: 'palette', build: 'palette',
+  code: 'code', swagger: 'swagger', redis: 'database', 'redis-list': 'database',
+  druid: 'monitor-cog', server: 'server', guide: 'app-window',
+}
+
 export function resolveIcon(name?: IconName): LucideIcon {
   return (name ? iconMap[name] : undefined) ?? LayoutDashboard
+}
+
+export function resolveMenuIcon(backendName?: string): IconName {
+  const raw = (backendName ?? '').trim()
+  if (!raw) return 'app-window'
+  if (raw in menuIconAliases) return menuIconAliases[raw]
+  if (raw in iconMap) return raw as IconName
+  if (import.meta.env.DEV) {
+    console.warn(`[icons] unmapped menu icon: "${raw}"`)
+  }
+  return 'app-window'
 }

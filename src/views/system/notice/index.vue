@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, reactive, ref } from 'vue'
 import { Pencil, Plus, RefreshCw, Trash2 } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 
@@ -10,7 +10,7 @@ import AdminDataTable from '@/components/admin/AdminDataTable.vue'
 import AdminDialogContent from '@/components/admin/AdminDialogContent.vue'
 import AdminFormField from '@/components/admin/AdminFormField.vue'
 import AdminQueryPanel from '@/components/admin/AdminQueryPanel.vue'
-import AdminRichTextEditor from '@/components/admin/AdminRichTextEditor.vue'
+const AdminRichTextEditor = defineAsyncComponent(() => import('@/components/admin/AdminRichTextEditor.vue'))
 import AdminSectionCard from '@/components/admin/AdminSectionCard.vue'
 import AdminStatusBadge from '@/components/admin/AdminStatusBadge.vue'
 import { Badge } from '@/components/ui/badge'

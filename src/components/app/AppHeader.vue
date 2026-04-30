@@ -35,6 +35,7 @@ import {
 import { OverlayScrollbar } from '@/components/ui/overlay-scrollbar'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { useBreadcrumb } from '@/composables/useBreadcrumb'
 import { resolveIcon } from '@/lib/icons'
 import { useNavigationStore } from '@/stores/navigation'
 import { usePermissionStore } from '@/stores/permission'
@@ -51,32 +52,17 @@ const permission = usePermissionStore()
 const topGroupScrollRef = ref<{ wrapRef: HTMLElement | null, update: () => void } | null>(null)
 const activeMenu = computed(() => String(route.meta.activeMenu ?? route.path))
 const currentRoot = computed(() => navigation.findRoot(activeMenu.value))
-const navTrail = computed(() => navigation.findTrail(activeMenu.value))
 const navItem = computed(() => navigation.findItem(activeMenu.value))
 const commandEntries = computed(() => [...navigation.allItems, ...navigation.quickActions])
 const topGroups = computed(() => navigation.rootItems.filter(item => item.clickable || item.children.length > 0))
-const pageTitle = computed(() => String(route.meta.title ?? navTrail.value.at(-1)?.title ?? navItem.value?.title ?? '工作台'))
+const { items: breadcrumbItems } = useBreadcrumb()
+const pageTitle = computed(() => String(route.meta.title ?? breadcrumbItems.value.at(-1)?.title ?? navItem.value?.title ?? '工作台'))
 const pageSubtitle = computed(() => {
-  const titles = navTrail.value.map(item => item.title)
+  const titles = breadcrumbItems.value.map(item => item.title)
   if (ui.layout.topNav) {
     return titles.length > 1 ? titles.slice(0, -1).join(' / ') : currentRoot.value?.title ?? '后台导航'
   }
   return titles.length > 1 ? titles.slice(0, -1).join(' / ') : String(route.meta.title ?? '')
-})
-
-const breadcrumbItems = computed(() => {
-  const items = navTrail.value.map(item => item.title)
-  const routeTitle = String(route.meta.title ?? '').trim()
-
-  if (!items.length && route.path === '/index') {
-    return ['工作台']
-  }
-
-  if (route.meta.hidden && routeTitle && items.at(-1) !== routeTitle) {
-    items.push(routeTitle)
-  }
-
-  return items
 })
 
 function topGroupId(path: string) {
@@ -189,10 +175,10 @@ watch(() => currentRoot.value?.path ?? '', () => {
         <template v-else>
           <Breadcrumb>
             <BreadcrumbList>
-              <template v-for="(item, index) in breadcrumbItems" :key="`${item}-${index}`">
+              <template v-for="(item, index) in breadcrumbItems" :key="`${item.path}-${index}`">
                 <BreadcrumbSeparator v-if="index > 0" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{{ item }}</BreadcrumbPage>
+                  <BreadcrumbPage>{{ item.title }}</BreadcrumbPage>
                 </BreadcrumbItem>
               </template>
             </BreadcrumbList>
